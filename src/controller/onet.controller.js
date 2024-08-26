@@ -84,80 +84,6 @@ async function getInterestProfilerData(req, res) {
   }
 }
 
-// async function resultAndMatchingCareers(req, res) {
-//   try {
-//     const { resource, answers, userId } = req.body;
-//     const careers = await onetInterestProfiler.resultAndMatchingCareers('careers', answers);
-//     const results = await onetInterestProfiler.resultAndMatchingCareers('results', answers);
-
-//     const user = await User.findById(userId);
-//     user.assessment30 = {
-//       ...user.assessment30,
-//       answers, // Assign answers from request body
-//       attemptDate: new Date(),
-//       careers,
-//       results,
-//     };
-//     await user.save();
-
-//     // manualAssessment
-
-//     const survey = await Survey1.findOne({ userId: userId });
-//     const clustersData = await CareerCluster.find();
-
-//     const occupationData = [];
-//     survey.selectedPathways.forEach((selectedPathway) => {
-//       clustersData.forEach((cluster) => {
-//         if (cluster.CareerPathways === selectedPathway) {
-//           occupationData.push({
-//             href: `https://services.onetcenter.org/ws/mnm/careers/${cluster.Code}/`,
-//             fit: 'Perfect', // You can customize this value as needed
-//             code: cluster.Code,
-//             title: cluster.Occupation,
-//           });
-//         }
-//       });
-//     });
-
-//     let finalCareer = [];
-
-//     for (let i = 0; i < occupationData.length; i++) {
-//       for (let j = 0; j < careers.career.length; j++) {
-//         if (occupationData[i].code === careers.career[j].code) {
-//           finalCareer.push(occupationData[i]);
-//         }
-//       }
-//     }
-//     if (finalCareer.length === 0) {
-//       finalCareer = careers;
-//     } else if (finalCareer.length > 0) {
-//       let remaining = finalCareer.length - careers.career.length;
-//       for (let i = 0; i < remaining; i++) {
-//         finalCareer.push(careers.career[i]);
-//       }
-//     }
-
-//     console.log('finalCareer', finalCareer);
-
-//     // console.log('user', survey.selectedPathways);
-//     // console.log('clustersData', clustersData);
-//     console.log('Occupation:', occupationData);
-//     console.log('career', careers);
-
-//     careers.career = occupationData;
-
-//     // manualAssessment
-
-//     res.status(200).json({ careers, results, paid: user.assessment30.payment });
-
-//     // const result = manualAssessment(user, careers, results);
-//   } catch (error) {
-//     return res
-//       .status(500)
-//       .json({ message: 'Something went wrong, please try again', error: error.message });
-//   }
-// }
-
 async function resultAndMatchingCareers(req, res) {
   try {
     const { answers, userId } = req.body;
@@ -171,39 +97,39 @@ async function resultAndMatchingCareers(req, res) {
       UnifiedRecord.findOne({ userId }),
     ]);
 
-    const occupationData = clustersData.flatMap((cluster) =>
-      survey.selectedPathways.includes(cluster.CareerPathways)
-        ? [
-            {
-              href: `https://services.onetcenter.org/ws/mnm/careers/${cluster.Code}/`,
-              fit: 'Perfect', // You can customize this value as needed
-              code: cluster.Code,
-              title: cluster.Occupation,
-            },
-          ]
-        : [],
-    );
+    // const occupationData = clustersData.flatMap((cluster) =>
+    //   survey.selectedPathways.includes(cluster.CareerPathways)
+    //     ? [
+    //         {
+    //           href: `https://services.onetcenter.org/ws/mnm/careers/${cluster.Code}/`,
+    //           fit: 'Perfect', // You can customize this value as needed
+    //           code: cluster.Code,
+    //           title: cluster.Occupation,
+    //         },
+    //       ]
+    //     : [],
+    // );
 
-    let finalCareer = occupationData.filter((occupation) =>
-      careers.career.some((career) => career.code === occupation.code),
-    );
+    // let finalCareer = occupationData.filter((occupation) =>
+    //   careers.career.some((career) => career.code === occupation.code),
+    // );
 
-    if (!finalCareer.length) {
-      finalCareer = careers.career;
-    } else {
-      const remaining = careers.career.filter(
-        (career) => !finalCareer.some((fc) => fc.code === career.code),
-      );
-      finalCareer = [...finalCareer, ...remaining];
-    }
+    // if (!finalCareer.length) {
+    //   finalCareer = careers.career;
+    // } else {
+    //   const remaining = careers.career.filter(
+    //     (career) => !finalCareer.some((fc) => fc.code === career.code),
+    //   );
+    //   finalCareer = [...finalCareer, ...remaining];
+    // }
 
     // Prioritize "Perfect", then "Great", then "Best"
-    const fitPriority = { Perfect: 1, Great: 2, Best: 3 };
-    finalCareer.sort((a, b) => (fitPriority[a.fit] || 4) - (fitPriority[b.fit] || 4));
+    // const fitPriority = { Perfect: 1, Great: 2, Best: 3 };
+    // finalCareer.sort((a, b) => (fitPriority[a.fit] || 4) - (fitPriority[b.fit] || 4));
 
-    // Limit the finalCareer array to 20 items
-    finalCareer = finalCareer.slice(0, 20);
-    careers.career = finalCareer;
+    // // Limit the finalCareer array to 20 items
+    // finalCareer = finalCareer.slice(0, 20);
+    // careers.career = finalCareer;
 
     // Check if InterestProfile exists and update or create a new one
     let interestProfile = await InterestProfile.findOne({ userId });

@@ -12,6 +12,7 @@ import userDetailRoutes from '##/src/routes/userDetails.routes.js';
 import commentRoutes from '##/src/routes/comment.routes.js';
 import discQuestionRoute from '##/src/routes/discQuestion.routes.js';
 import resumeRoutes from '##/src/routes/resume.routes.js';
+import discRoute from '##/src/routes/disc.routes.js';
 
 function routes(app) {
   app.use('/api/auth', authRoutes);
@@ -27,8 +28,9 @@ function routes(app) {
   app.use('/api/admin', adminRoutes);
   app.use('/api/user-details', userDetailRoutes);
   app.use('/api/comment', commentRoutes);
-  app.use('/api/disc', discQuestionRoute);
+  app.use('/api/discQuestions', discQuestionRoute);
   app.use('/api/resume', resumeRoutes);
+  app.use('/api/disc', discRoute);
 }
 
 export default routes;

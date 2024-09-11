@@ -61,6 +61,15 @@ const videoSchema = new mongoose.Schema(
       max: 5,
       default: 0,
     },
+    // total rating count for the video
+    totalRatings: {
+      type: Number,
+      default: 0,
+    },
+    totalLikes: {
+      type: Number,
+      default: 0,
+    },
   },
   {
     timestamps: true,

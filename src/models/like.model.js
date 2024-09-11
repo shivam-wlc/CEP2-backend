@@ -7,17 +7,11 @@ const likeSchema = new mongoose.Schema(
       ref: 'Video',
       required: true,
     },
-    count: {
-      type: Number,
-      default: 0,
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
     },
-    users: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true,
-      },
-    ],
   },
   {
     timestamps: true,

@@ -1,6 +1,5 @@
 import { isAuthenticated } from '##/src/middleware/auth.middleware.js';
 import authRoutes from '##/src/routes/auth.routes.js';
-import universityRoute from '##/src/routes/university.routes.js';
 import profileRoutes from '##/src/routes/profile.routes.js';
 import creatorRoute from '##/src/routes/creator.routes.js';
 import surveyRoute from '##/src/routes/survey.routes.js';
@@ -13,10 +12,12 @@ import commentRoutes from '##/src/routes/comment.routes.js';
 import discQuestionRoute from '##/src/routes/discQuestion.routes.js';
 import resumeRoutes from '##/src/routes/resume.routes.js';
 import discRoute from '##/src/routes/disc.routes.js';
+import exploreRoute from '##/src/routes/explore.routes.js';
+import likeRoute from '##/src/routes/like.routes.js';
+import ratingRoute from '##/src/routes/rating.routes.js';
 
 function routes(app) {
   app.use('/api/auth', authRoutes);
-  app.use('/api/university', universityRoute);
   app.use('/api/profile', profileRoutes);
   app.use('/api/creator', creatorRoute);
   app.use('/api/survey', isAuthenticated, surveyRoute);
@@ -31,6 +32,9 @@ function routes(app) {
   app.use('/api/discQuestions', discQuestionRoute);
   app.use('/api/resume', resumeRoutes);
   app.use('/api/disc', discRoute);
+  app.use('/api/explore', exploreRoute);
+  app.use('/api/like', likeRoute);
+  app.use('/api/rating', ratingRoute);
 }
 
 export default routes;

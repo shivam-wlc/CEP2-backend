@@ -2,6 +2,9 @@ import Survey from '##/src/models/survey.model.js';
 import User from '##/src/models/user.model.js';
 import UnifiedRecord from '##/src/models/unifiedRecord.model.js';
 import CareerCluster from '##/src/models/careerCluster.model.js';
+import careerClustersData from '##/src/utility/json/careerClusters.js';
+import SurveyQuestion from '##/src/models/surveyQuestions.model.js';
+import surveyQuestionsData from '##/src/utility/json/surevyQuestions.js';
 
 async function saveSurveyData(req, res) {
   const { userId } = req.params;
@@ -113,6 +116,13 @@ async function getSurveyData(req, res) {
 
 async function getCareerClusterOptions(req, res) {
   try {
+    const clusterCount = await CareerCluster.countDocuments().exec();
+
+    if (clusterCount === 0) {
+      await CareerCluster.insertMany(careerClustersData);
+      console.log('Career clusters inserted');
+    }
+
     // Fetch all career clusters from the database
     const careerClusters = await CareerCluster.find({});
 
@@ -151,4 +161,27 @@ async function getCareerClusterOptions(req, res) {
   }
 }
 
-export { saveSurveyData, getSurveyData, getCareerClusterOptions };
+async function getSurveyQuestions(req, res) {
+  try {
+    const questionsCount = await SurveyQuestion.countDocuments().exec();
+
+    if (questionsCount === 0) {
+      await SurveyQuestion.insertMany(surveyQuestionsData);
+      console.log('Survey questions inserted');
+    }
+
+    const questions = await SurveyQuestion.find({});
+
+    if (questions.length === 0) {
+      return res.status(404).json({ message: 'No survey questions found' });
+    }
+
+    return res.status(200).json({ questions });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: 'Something went wrong, please try again', error: error.message });
+  }
+}
+
+export { saveSurveyData, getSurveyData, getCareerClusterOptions, getSurveyQuestions };

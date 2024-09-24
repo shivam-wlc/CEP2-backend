@@ -59,6 +59,12 @@ const unifiedRecordSchema = new mongoose.Schema(
         ref: 'Resume',
       },
     },
+    unique_id: {
+      // Add unique_id field
+      type: String,
+      required: true,
+      unique: true,
+    },
   },
   {
     timestamps: true,

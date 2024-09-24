@@ -1,4 +1,5 @@
 import DiscProfileQuestion from '##/src/models/discQuestion.model.js';
+import predefinedQuestions from '##/src/utility/json/discQuestions.js';
 
 const createQuestion = async (req, res) => {
   try {
@@ -33,8 +34,42 @@ const createQuestion = async (req, res) => {
   }
 };
 
+// const getAllQuestions = async (req, res) => {
+//   try {
+//     // Fetch all questions
+//     const questions = await DiscProfileQuestion.find().exec();
+
+//     // Sort questions based on questionNumber
+//     const sortedQuestions = questions.sort((a, b) => {
+//       return parseInt(a.questionNumber) - parseInt(b.questionNumber);
+//     });
+
+//     // Get the total count of questions
+//     const totalQuestions = await DiscProfileQuestion.countDocuments().exec();
+
+//     res.status(200).json({
+//       totalQuestions, // Include the count in the response
+//       questions: sortedQuestions, // Send sorted questions
+//     });
+//   } catch (error) {
+//     res.status(500).json({
+//       message: 'Failed to retrieve questions',
+//       error: error.message,
+//     });
+//   }
+// };
+
 const getAllQuestions = async (req, res) => {
   try {
+    // Check if any questions exist in the database
+    const questionCount = await DiscProfileQuestion.countDocuments().exec();
+
+    // If no questions found, insert predefined questions
+    if (questionCount === 0) {
+      await DiscProfileQuestion.insertMany(predefinedQuestions);
+      console.log('Predefined questions inserted.');
+    }
+
     // Fetch all questions
     const questions = await DiscProfileQuestion.find().exec();
 
@@ -43,7 +78,7 @@ const getAllQuestions = async (req, res) => {
       return parseInt(a.questionNumber) - parseInt(b.questionNumber);
     });
 
-    // Get the total count of questions
+    // Get the total count of questions after possible insertion
     const totalQuestions = await DiscProfileQuestion.countDocuments().exec();
 
     res.status(200).json({

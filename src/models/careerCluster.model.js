@@ -1,23 +1,29 @@
 import mongoose from 'mongoose';
 
-const careerClustersSchema = new mongoose.Schema({
-  CareerClusters: {
-    type: String,
-    required: true,
+const careerClustersSchema = new mongoose.Schema(
+  {
+    CareerClusters: {
+      type: String,
+      required: true,
+    },
+    CareerPathways: {
+      type: String,
+      required: true,
+    },
+    Code: {
+      type: String,
+      required: true,
+    },
+    Occupation: {
+      type: String,
+      required: true,
+    },
   },
-  CareerPathways: {
-    type: String,
-    required: true,
+  {
+    timestamps: false,
+    versionKey: false,
   },
-  Code: {
-    type: String,
-    required: true,
-  },
-  Occupation: {
-    type: String,
-    required: true,
-  },
-});
+);
 
 // Indexes
 careerClustersSchema.index({ CareerClusters: 1 }); // Index on CareerClusters for fast lookups

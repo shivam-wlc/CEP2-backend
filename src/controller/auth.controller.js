@@ -9,6 +9,7 @@ import UserHistory from '##/src/models/userHistory.model.js';
 import Playlist from '##/src/models/playlist.model.js';
 import Resume from '##/src/models/resume.model.js';
 import { checkPassStrength, isValidEmail } from '##/utility/validate.js';
+import UniqueIDCounter from '##/src/models/uniqueIdCounter.model.js';
 
 const signup = async (req, res) => {
   try {
@@ -34,6 +35,34 @@ const signup = async (req, res) => {
 
     let status = role === 'creator' ? 'pending' : 'active';
 
+    // Get the current year and month in YYYYMM format
+    const currentYearMonth = new Date().toISOString().slice(0, 7).replace('-', '');
+
+    // Use atomic operation to get and update the sequence number
+    let unique_id;
+    const MAX_RETRIES = 5; // Maximum number of retries
+    let retryCount = 0;
+
+    while (retryCount < MAX_RETRIES) {
+      try {
+        const counter = await UniqueIDCounter.findOneAndUpdate(
+          { yearMonth: currentYearMonth },
+          { $inc: { sequenceNumber: 1 } },
+          { new: true, upsert: true }, // Create if it doesn't exist
+        );
+
+        const sequentialNumber = counter.sequenceNumber;
+        unique_id = `${currentYearMonth}${sequentialNumber.toString().padStart(4, '0')}`;
+
+        break; // Break out of the loop on success
+      } catch (error) {
+        retryCount++;
+        if (retryCount === MAX_RETRIES) {
+          return res.status(500).json({ message: 'Failed to generate unique ID' });
+        }
+      }
+    }
+
     // Create user document
     const user = new User({
       ...req.body,
@@ -46,6 +75,7 @@ const signup = async (req, res) => {
       activeDashboard: role,
       mobile,
       gender,
+      unique_id,
     });
 
     // Save user, userDetails, unifiedRecord, and userHistory in parallel
@@ -70,6 +100,7 @@ const signup = async (req, res) => {
 
     const newUnifiedRecord = new UnifiedRecord({
       userId: user._id,
+      unique_id,
       userDetailsId: userDetails._id,
       interestProfile: { isTaken: false },
       discProfile: { isTaken: false },

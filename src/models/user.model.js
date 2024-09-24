@@ -65,6 +65,12 @@ const userSchema = new mongoose.Schema(
       enum: ['active', 'inactive', 'deleted', 'blocked', 'suspended', 'pending'],
       default: 'active',
     },
+    unique_id: {
+      // Add unique_id field
+      type: String,
+      required: true,
+      unique: true,
+    },
   },
   {
     versionKey: false,
@@ -74,7 +80,7 @@ const userSchema = new mongoose.Schema(
 
 // Indexing the email field for faster queries and ensuring uniqueness
 userSchema.index({ email: 1 }, { unique: true });
-
+userSchema.index({ unique_id: 1 }, { unique: true });
 // Adding compound indexes if there are frequent queries involving multiple fields
 // For example, indexing status and role for queries involving both
 userSchema.index({ status: 1, role: 1 });

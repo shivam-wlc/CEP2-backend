@@ -17,11 +17,11 @@ onetRoutes.route('/careerwithbrightoutlook').get(onet.careerWithBrightOutlook);
 onetRoutes.route('/browsecareerwithbrightoutlook').post(onet.browseCareerWithBrightOutlook);
 onetRoutes.route('/careerwithapprenticeship').post(onet.careerWithApperenticeship);
 onetRoutes.route('/careersortedbyjobpreparation').get(onet.careerSortedByJobPrepration);
-onetRoutes.route('/browsecareersortedbyjobpreparation').post(onet.browseCareerSortedByJobPrepration);
+onetRoutes
+  .route('/browsecareersortedbyjobpreparation')
+  .post(onet.browseCareerSortedByJobPrepration);
 onetRoutes.route('/careerbycode/:careercode').get(onet.careerByCode);
 onetRoutes.route('/getcareerinfo/:careercode/:topic').get(onet.getCareerInfo);
 onetRoutes.route('/generateresult/:userId').get(onet.generateResult);
-
-
 
 export default onetRoutes;

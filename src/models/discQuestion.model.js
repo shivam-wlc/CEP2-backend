@@ -74,7 +74,7 @@ const statementSchema = new Schema(
   {
     _id: false,
   },
-); 
+);
 
 const discQuestionSchema = new Schema(
   {

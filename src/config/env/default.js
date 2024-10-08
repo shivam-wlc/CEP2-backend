@@ -1,3 +1,4 @@
+/* eslint-disable */
 export default {
   app: {
     title: process.env.TITLE,

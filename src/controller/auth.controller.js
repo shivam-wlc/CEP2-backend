@@ -58,7 +58,9 @@ const signup = async (req, res) => {
       } catch (error) {
         retryCount++;
         if (retryCount === MAX_RETRIES) {
-          return res.status(500).json({ message: 'Failed to generate unique ID' });
+          return res
+            .status(500)
+            .json({ message: 'Failed to generate unique ID', error: error.message });
         }
       }
     }

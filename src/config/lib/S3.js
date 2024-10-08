@@ -46,7 +46,6 @@ async function uploadToS3(req) {
     await s3Client.send(command);
 
     // delete the file after uploading to S3
-    // eslint-disable-next-line no-sync
     fs.unlinkSync(req.file.path);
 
     return {

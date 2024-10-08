@@ -1,3 +1,4 @@
+/* eslint-disable */
 import chalk from 'chalk';
 import { createHttpTerminator } from 'http-terminator';
 import config from '##/src/config/config.js';

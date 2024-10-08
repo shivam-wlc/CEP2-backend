@@ -14,4 +14,4 @@ async function getTopUniversity() {
   );
 }
 
-export { getTopUniversity }
+export { getTopUniversity };

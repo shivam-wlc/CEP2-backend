@@ -28,16 +28,13 @@ async function getUniversityByCountry(country) {
 }
 
 async function getUniversityByName(name) {
-  return await fetchWithError(
-    `${config.zyla_base_url}/1461/get+university+by+name?name=${name}`,
-    {
-      method: 'GET',
-      headers: {
-        // Accept: 'application/json',
-        Authorization: `Bearer ${config.zyla_token}`,
-      },
+  return await fetchWithError(`${config.zyla_base_url}/1461/get+university+by+name?name=${name}`, {
+    method: 'GET',
+    headers: {
+      // Accept: 'application/json',
+      Authorization: `Bearer ${config.zyla_token}`,
     },
-  );
+  });
 }
 
-export { getTopUniversity, getUniversityByCountry, getUniversityByName }
+export { getTopUniversity, getUniversityByCountry, getUniversityByName };

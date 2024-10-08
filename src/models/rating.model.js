@@ -22,7 +22,7 @@ const ratingSchema = new mongoose.Schema(
   {
     timestamps: true,
     versionKey: false,
-  }
+  },
 );
 
 const Rating = mongoose.model('Rating', ratingSchema);

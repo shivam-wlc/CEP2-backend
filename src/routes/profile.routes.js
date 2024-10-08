@@ -7,6 +7,8 @@ const profileRoutes = express.Router();
 profileRoutes.route('/userProfile/:userId').get(profile.getUserProfile);
 profileRoutes.route('/updateProfile/:userId').patch(profile.updateProfile);
 profileRoutes.route('/updatePassword/:userId').patch(profile.updatePassword);
-profileRoutes.route('/uploadProfilePicture/:userId').post(upload.single('file'), profile.uploadProfilePicture);
+profileRoutes
+  .route('/uploadProfilePicture/:userId')
+  .post(upload.single('file'), profile.uploadProfilePicture);
 
 export default profileRoutes;

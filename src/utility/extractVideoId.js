@@ -5,4 +5,4 @@ function extractVideoId(url) {
   return match && match[1];
 }
 
-export { extractVideoId }
+export { extractVideoId };

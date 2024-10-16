@@ -11,7 +11,7 @@ export default {
   package: {
     version: '1.0.0',
   },
-
+  server_api: process.env.SERVER_API,
   port: process.env.PORT || 8080,
   host: process.env.HOST || 'localhost',
   env: process.env.NODE_ENV,

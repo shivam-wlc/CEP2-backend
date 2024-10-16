@@ -4,7 +4,8 @@ import { checkRole } from '##/utility/checkRole.js';
 
 async function isAuthenticated(req, res, next) {
   try {
-    const [, token] = req.headers.authorization.split(' ');
+    const token = req.headers.authorization?.split(' ')[1] || req.query.token;
+    
     const { userId } = jwtVerify(token, 'access');
     const user = await User.findById(userId);
     req.user = user;

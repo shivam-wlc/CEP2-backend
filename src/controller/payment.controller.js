@@ -1,6 +1,9 @@
 import UnifiedRecord from '##/src/models/unifiedRecord.model.js';
 import InterestProfile from '##/src/models/interestProfile.model.js';
 import Payment from '##/src/models/payment.model.js';
+import config from '##/src/config/config.js';
+import Stripe from 'stripe';
+const stripe = new Stripe('sk_test_51PBCWbSAamJ9jNQR2vtM69iKJDXXpyP9zc62cJM8FLSY6EtxoPxCj6mMtqLdLne76NYYRhaR3pwYotVwhLUyebkS00aWYlqhoy');
 
 const createPaymentforInterestProfile = async (req, res) => {
   try {
@@ -51,7 +54,7 @@ const createPaymentforInterestProfile = async (req, res) => {
 
     await Promise.all([unifiedRecord.save(), interestProfile.save()]);
 
-    res.status(201).json({ message: 'Payment created successfully', answers });
+    res.redirect(`${config.domain}/assessment-result1`);
   } catch (error) {
     res
       .status(500)
@@ -59,4 +62,55 @@ const createPaymentforInterestProfile = async (req, res) => {
   }
 };
 
-export { createPaymentforInterestProfile };
+const createPayment = async (req, res) => {
+  try {
+    const { productName, price } = req.body;
+    const { userId } = req.params;
+    const currency = 'inr';
+    const session = await stripe.checkout.sessions.create({
+      line_items: [
+        {
+          price_data: {
+            currency, // pass the currency here
+            product_data: {
+              name: productName,
+            },
+            unit_amount: price * 100, // for stripe INR currency; 100 = 100 paise
+          },
+          quantity: 1,
+        },
+      ],
+      billing_address_collection: 'required',
+      mode: 'payment',
+      success_url: `${config.server_api}/api/payment/success?userId=${userId}&product=${productName}&currency=${currency}&price=${price}&token=${req.headers.authorization.split(' ')[1]}`,
+      cancel_url: `${config.server_api}/api/payment/failed?userId=${userId}&product=${productName}&price=${price}&token=${req.headers.authorization.split(' ')[1]}`,
+    });
+  
+    res.status(200).json({ url: session.url });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: 'Something went wrong, please try again', error: error.message });
+  }
+}
+
+const successPayment = async (req, res) => {
+  try {
+    const { product, userId, price, currency } = req.query;
+    req.body ??= {};
+    req.params.userId = userId;
+    req.body.assessmentName = product;
+    req.body.transactionID = 'abc';
+    req.body.paymentStatus = 'success'
+    req.body.currency = currency;
+    req.body.amount = price;
+
+    await createPaymentforInterestProfile(req, res)
+  } catch (error) {
+    res
+    .status(500)
+    .json({ message: 'Something went wrong, please try again', error: error.message });
+  }
+}
+
+export { createPaymentforInterestProfile, createPayment, successPayment };

@@ -5,6 +5,8 @@ import CareerCluster from '##/src/models/careerCluster.model.js';
 import careerClustersData from '##/src/utility/json/careerClusters.js';
 import SurveyQuestion from '##/src/models/surveyQuestions.model.js';
 import surveyQuestionsData from '##/src/utility/json/surevyQuestions.js';
+import InterestProfile from '##/src/models/interestProfile.model.js';
+import * as onetInterestProfiler from '##/src/services/onet/interestProfiler.onet.service.js';
 
 async function saveSurveyData(req, res) {
   const { userId } = req.params;
@@ -81,9 +83,74 @@ async function saveSurveyData(req, res) {
     userUnifiedRecord.survey.surveyId = survey._id;
     await userUnifiedRecord.save();
 
+    // updating interest profile
+    interestProfileOptimisation(userId, selectedPathways);
+
     res.status(201).json({ message: 'Survey data saved successfully!' });
   } catch (error) {
     res.status(500).json({ message: 'Error saving survey data', error: error.message });
+  }
+}
+
+// Interest Profile Optimisation on the basis of Career Cluster and Pathways
+
+// Interest Profile Optimisation on the basis of Career Cluster and Pathways
+async function interestProfileOptimisation(userId, selectedPathways) {
+  try {
+    const userInterestProfile = await InterestProfile.findOne({ userId });
+    if (!userInterestProfile) {
+      throw new Error('InterestProfile not found');
+    }
+
+    const userAnswers = userInterestProfile.answers;
+
+    // Run promises in parallel for improved performance
+    const [careers, results, clustersData] = await Promise.all([
+      onetInterestProfiler.resultAndMatchingCareers('careers', userAnswers),
+      onetInterestProfiler.resultAndMatchingCareers('results', userAnswers),
+      CareerCluster.find(),
+    ]);
+
+    // Optimize the creation of occupationData by filtering only required clusters
+    const occupationData = clustersData
+      .filter((cluster) => selectedPathways.includes(cluster.CareerPathways))
+      .map((cluster) => ({
+        href: `https://services.onetcenter.org/ws/mnm/careers/${cluster.Code}/`,
+        fit: 'Perfect', // Can be customized
+        code: cluster.Code,
+        title: cluster.Occupation,
+      }));
+
+    // Filter careers that match the occupation codes from occupationData
+    let finalCareer = occupationData.filter((occupation) =>
+      careers.career.some((career) => career.code === occupation.code),
+    );
+
+    // If no exact match is found, use all available careers
+    if (!finalCareer.length) {
+      finalCareer = careers.career;
+    } else {
+      // Add remaining careers that didn't match initially
+      const remaining = careers.career.filter(
+        (career) => !finalCareer.some((fc) => fc.code === career.code),
+      );
+      finalCareer = [...finalCareer, ...remaining];
+    }
+
+    // Prioritize "Perfect", then "Great", then "Best" using a fitPriority mapping
+    const fitPriority = { Perfect: 1, Great: 2, Best: 3 };
+    finalCareer.sort((a, b) => (fitPriority[a.fit] || 4) - (fitPriority[b.fit] || 4));
+
+    // Limit the finalCareer array to 20 items for optimization
+    finalCareer = finalCareer.slice(0, 20);
+    careers.career = finalCareer;
+
+    // Update user interest profile with optimized careers and results
+    userInterestProfile.careers = careers;
+    userInterestProfile.results = results;
+    await userInterestProfile.save();
+  } catch (error) {
+    console.error('Error in interestProfileOptimisation:', error);
   }
 }
 

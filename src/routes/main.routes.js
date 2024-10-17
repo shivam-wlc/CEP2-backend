@@ -15,6 +15,7 @@ import discRoute from '##/src/routes/disc.routes.js';
 import exploreRoute from '##/src/routes/explore.routes.js';
 import likeRoute from '##/src/routes/like.routes.js';
 import ratingRoute from '##/src/routes/rating.routes.js';
+import interestProfileRoute from '##/src/routes/interestProfile.routes.js';
 
 function routes(app) {
   app.use('/api/auth', authRoutes);
@@ -35,6 +36,7 @@ function routes(app) {
   app.use('/api/explore', exploreRoute);
   app.use('/api/like', likeRoute);
   app.use('/api/rating', ratingRoute);
+  app.use('/api/interest', interestProfileRoute);
 }
 
 export default routes;

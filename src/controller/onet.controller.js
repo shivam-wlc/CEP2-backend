@@ -97,40 +97,6 @@ async function resultAndMatchingCareers(req, res) {
       UnifiedRecord.findOne({ userId }),
     ]);
 
-    // const occupationData = clustersData.flatMap((cluster) =>
-    //   survey.selectedPathways.includes(cluster.CareerPathways)
-    //     ? [
-    //         {
-    //           href: `https://services.onetcenter.org/ws/mnm/careers/${cluster.Code}/`,
-    //           fit: 'Perfect', // You can customize this value as needed
-    //           code: cluster.Code,
-    //           title: cluster.Occupation,
-    //         },
-    //       ]
-    //     : [],
-    // );
-
-    // let finalCareer = occupationData.filter((occupation) =>
-    //   careers.career.some((career) => career.code === occupation.code),
-    // );
-
-    // if (!finalCareer.length) {
-    //   finalCareer = careers.career;
-    // } else {
-    //   const remaining = careers.career.filter(
-    //     (career) => !finalCareer.some((fc) => fc.code === career.code),
-    //   );
-    //   finalCareer = [...finalCareer, ...remaining];
-    // }
-
-    // Prioritize "Perfect", then "Great", then "Best"
-    // const fitPriority = { Perfect: 1, Great: 2, Best: 3 };
-    // finalCareer.sort((a, b) => (fitPriority[a.fit] || 4) - (fitPriority[b.fit] || 4));
-
-    // // Limit the finalCareer array to 20 items
-    // finalCareer = finalCareer.slice(0, 20);
-    // careers.career = finalCareer;
-
     // Check if InterestProfile exists and update or create a new one
     let interestProfile = await InterestProfile.findOne({ userId });
 

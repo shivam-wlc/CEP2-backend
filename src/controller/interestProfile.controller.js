@@ -40,7 +40,7 @@ async function getInterestProfiler(req, res) {
 
     // Check payment status and respond accordingly
     if (unifiedRecord.interestProfile.isPaid && unifiedRecord.discProfile.isPaid) {
-      return res.status(200).json({ interestProfile });
+      return res.status(200).json(interestProfile);
     } else {
       const randomCareers = getRandomCareers(interestProfile.careers.career, 3);
       return res.status(200).json({ ...interestProfile, careers: { career: randomCareers } });

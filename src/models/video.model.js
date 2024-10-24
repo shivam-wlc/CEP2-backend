@@ -70,6 +70,14 @@ const videoSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    totalViews: {
+      type: Number,
+      default: 0,
+    },
+    totalShares: {
+      type: Number,
+      default: 0,
+    },
   },
   {
     timestamps: true,

@@ -18,6 +18,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // Configure AWS S3
+
 const s3Client = new S3Client({
   region: config.aws_region,
   credentials: {
@@ -27,7 +28,7 @@ const s3Client = new S3Client({
 });
 
 // The request should contain the file from formData
-async function uploadToS3(req) {
+async function uploadToS3(req, directory) {
   try {
     if (!req.file) {
       return { message: 'No file uploaded', ok: false };
@@ -38,9 +39,18 @@ async function uploadToS3(req) {
 
     const uploadParams = {
       Bucket: config.aws_s3_bucket,
-      Key: `${uniqueFileName}.${fileName[fileName.length - 1]}`, // Use the unique file name for S3
+      // Key: `${uniqueFileName}.${fileName[fileName.length - 1]}`, // Use the unique file name for S3
+      Key: `${directory}/${uniqueFileName}.${fileName[fileName.length - 1]}`,
       Body: fileStream,
     };
+
+    // const s3Config = {
+    //   bucketName: awsBucketName,
+    //   dirName: awsDirectoryName,
+    //   region: awsRegion,
+    //   accessKeyId: awsAccessId,
+    //   secretAccessKey: awsSecretKey,
+    // };
 
     const command = new PutObjectCommand(uploadParams);
     await s3Client.send(command);

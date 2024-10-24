@@ -31,13 +31,13 @@ const userDetailsSchema = new mongoose.Schema(
     socialMediaLinks: {
       type: [SocialMedia],
       default: [
+        { name: 'LinkedIn', link: '' },
         { name: 'Facebook', link: '' },
         { name: 'Instagram', link: '' },
-        { name: 'LinkedIn', link: '' },
-        { name: 'Twitter', link: '' },
-        { name: 'Telegram', link: '' },
         { name: 'TikTok', link: '' },
+        { name: 'Twitter', link: '' },
         { name: 'YouTube', link: '' },
+        { name: 'Telegram', link: '' },
       ],
     },
   },

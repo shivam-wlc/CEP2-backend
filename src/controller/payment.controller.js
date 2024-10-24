@@ -3,7 +3,9 @@ import InterestProfile from '##/src/models/interestProfile.model.js';
 import Payment from '##/src/models/payment.model.js';
 import config from '##/src/config/config.js';
 import Stripe from 'stripe';
-const stripe = new Stripe('sk_test_51PBCWbSAamJ9jNQR2vtM69iKJDXXpyP9zc62cJM8FLSY6EtxoPxCj6mMtqLdLne76NYYRhaR3pwYotVwhLUyebkS00aWYlqhoy');
+const stripe = new Stripe(
+  'sk_test_51PBCWbSAamJ9jNQR2vtM69iKJDXXpyP9zc62cJM8FLSY6EtxoPxCj6mMtqLdLne76NYYRhaR3pwYotVwhLUyebkS00aWYlqhoy',
+);
 
 const createPaymentforInterestProfile = async (req, res) => {
   try {
@@ -85,14 +87,14 @@ const createPayment = async (req, res) => {
       success_url: `${config.server_api}/api/payment/success?userId=${userId}&product=${productName}&currency=${currency}&price=${price}&token=${req.headers.authorization.split(' ')[1]}`,
       cancel_url: `${config.server_api}/api/payment/failed?userId=${userId}&product=${productName}&price=${price}&token=${req.headers.authorization.split(' ')[1]}`,
     });
-  
+
     res.status(200).json({ url: session.url });
   } catch (error) {
     res
       .status(500)
       .json({ message: 'Something went wrong, please try again', error: error.message });
   }
-}
+};
 
 const successPayment = async (req, res) => {
   try {
@@ -101,16 +103,16 @@ const successPayment = async (req, res) => {
     req.params.userId = userId;
     req.body.assessmentName = product;
     req.body.transactionID = 'abc';
-    req.body.paymentStatus = 'success'
+    req.body.paymentStatus = 'success';
     req.body.currency = currency;
     req.body.amount = price;
 
-    await createPaymentforInterestProfile(req, res)
+    await createPaymentforInterestProfile(req, res);
   } catch (error) {
     res
-    .status(500)
-    .json({ message: 'Something went wrong, please try again', error: error.message });
+      .status(500)
+      .json({ message: 'Something went wrong, please try again', error: error.message });
   }
-}
+};
 
 export { createPaymentforInterestProfile, createPayment, successPayment };

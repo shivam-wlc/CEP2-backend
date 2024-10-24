@@ -75,7 +75,11 @@ async function uploadProfilePicture(req, res) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    const { fileLink, ok } = await uploadToS3(req);
+    console.log('req,', req);
+
+    console.log('req.file:', req.file);
+
+    const { fileLink, ok } = await uploadToS3(req, 'profilePictures');
 
     if (!ok) {
       return res.status(400).json({ message: 'No file uploaded', ok: false });
@@ -93,5 +97,7 @@ async function uploadProfilePicture(req, res) {
       .json({ message: 'Something went wrong, please try again', error: error.message });
   }
 }
+
+async function uploadSocialMedia(req, res) {}
 
 export { getUserProfile, updateProfile, updatePassword, uploadProfilePicture };

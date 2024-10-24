@@ -16,7 +16,7 @@ async function uploadVideo(req, res) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    const { fileLink, ok } = await uploadToS3(req);
+    const { fileLink, ok } = await uploadToS3(req, 'videos');
     if (!ok) {
       return res.status(400).json({ message: 'No file upload', ok: false });
     }
@@ -46,7 +46,7 @@ async function uploadThumbnail(req, res) {
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-    const { fileLink, ok } = await uploadToS3(req);
+    const { fileLink, ok } = await uploadToS3(req, 'thumbnails');
 
     if (!ok) {
       return res.status(400).json({ message: 'No file upload', ok: false });

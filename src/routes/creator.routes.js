@@ -5,9 +5,12 @@ import { isAuthenticated, isRouteAllowed } from '##/src/middleware/auth.middlewa
 const creatorRoute = express.Router();
 
 // Only Allowed to Original Creator
+
+// video
 creatorRoute
   .route('/uploadvideo/:userId')
   .post(upload.single('file'), isAuthenticated, isRouteAllowed(['creator']), creator.uploadVideo);
+//thumbnail
 creatorRoute
   .route('/uploadthumbnail/:userId')
   .post(

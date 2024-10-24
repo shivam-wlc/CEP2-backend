@@ -46,6 +46,9 @@ export default {
   aws_secret_access_key: process.env.AWS_SECRET_ACCESS_KEY,
   aws_s3_bucket: process.env.AWS_S3_BUCKET,
   aws_s3_domain: process.env.AWS_S3_DOMAIN,
+  aws_s3_directory_photos: process.env.AWS_DIRECTORY_PHOTOS,
+  aws_s3_directory_videos: process.env.AWS_DIRECTORY_VIDEOS,
+  aws_s3_directory_thumbnails: process.env.AWS_DIRECTORY_THUMBNAILS,
 
   redis: {
     url: process.env.REDISCLOUD_URL || 'redis://127.0.0.1:6379',

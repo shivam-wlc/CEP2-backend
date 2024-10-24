@@ -71,6 +71,32 @@ const userSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
+    // add new updated fileds according to design
+    middleName: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    username: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    personalWebsite: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    nationality: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    telephone: {
+      type: String,
+      default: '',
+      trim: true,
+    },
   },
   {
     versionKey: false,

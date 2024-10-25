@@ -19,11 +19,14 @@ async function getAllVideos(req, res) {
         .sort({ createdAt: -1 }) // Sort by date (latest first)
         .skip(skip)
         .limit(limit)
+        .populate('creatorId', 'firstName lastName')
         .lean(), // Use lean to get plain JavaScript objects
       Video.countDocuments({
         title: searchRegex, // Counting with the same search criteria
       }),
     ]);
+
+    console.log('videos', videos);
 
     return res.status(200).json({
       videos,

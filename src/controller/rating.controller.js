@@ -48,6 +48,7 @@ async function rateVideo(req, res) {
     return res.status(ratingRecord.isNew ? 201 : 200).json({
       message: ratingRecord.isNew ? 'Rating created successfully' : 'Rating updated successfully',
       averageRating: newAverageRating,
+      rating: ratingRecord.rating,
     });
   } catch (error) {
     return res.status(500).json({
@@ -57,4 +58,33 @@ async function rateVideo(req, res) {
   }
 }
 
-export { rateVideo };
+async function getRatingStatus(req, res) {
+  try {
+    const { videoId, userId } = req.params;
+
+    // Validate input parameters
+    if (!videoId || !userId) {
+      return res.status(400).json({ message: 'Invalid request: Missing videoId or userId' });
+    }
+
+    // Find the rating for the given video and user
+    const rating = await Rating.findOne({ videoId, userId }, 'rating'); // Only fetch the required field
+
+    if (!rating) {
+      return res.status(200).json({ message: 'User has not rated the video yet', rating: 0 });
+    }
+
+    return res.status(200).json({
+      message: 'Rating status fetched successfully',
+      rating: rating.rating,
+    });
+  } catch (error) {
+    console.error('Error fetching rating status:', error.message);
+    return res.status(500).json({
+      message: 'An internal server error occurred',
+      error: error.message,
+    });
+  }
+}
+
+export { rateVideo, getRatingStatus };

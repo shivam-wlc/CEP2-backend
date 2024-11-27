@@ -1,6 +1,7 @@
 import Video from '##/src/models/video.model.js';
 import Like from '##/src/models/like.model.js';
 import UserHistory from '##/src/models/userHistory.model.js';
+import Rating from '##/src/models/rating.model.js';
 
 async function toggleLikeVideo(req, res) {
   try {
@@ -37,7 +38,7 @@ async function toggleLikeVideo(req, res) {
       );
       await userHistory.save();
 
-      return res.status(200).json({ message: 'Like removed successfully' });
+      return res.status(200).json({ message: 'Like removed successfully', userLiked: false });
     } else {
       // User hasn't liked the video yet, so add the like and increase totalLikes
       const newLike = new Like({ videoId, userId });
@@ -48,7 +49,7 @@ async function toggleLikeVideo(req, res) {
       userHistory.likedVideos.push({ videoId });
       await userHistory.save();
 
-      return res.status(201).json({ message: 'Video liked successfully' });
+      return res.status(201).json({ message: 'Video liked successfully', userLiked: true });
     }
   } catch (error) {
     return res.status(500).json({
@@ -58,4 +59,24 @@ async function toggleLikeVideo(req, res) {
   }
 }
 
-export { toggleLikeVideo };
+// we can send Like and Rating status in the same response
+
+async function getLikeStatus(req, res) {
+  try {
+    const { videoId, userId } = req.params;
+    const like = await Like.findOne({ videoId, userId });
+   
+
+    let userLiked = false;
+    if (like) {
+      userLiked = true;
+    }
+    return res.status(200).json({ message: 'Like status fetched successfully', userLiked });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: 'Something went wrong, please try again', error: error.message });
+  }
+}
+
+export { toggleLikeVideo, getLikeStatus };

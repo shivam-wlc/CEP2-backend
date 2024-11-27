@@ -19,10 +19,31 @@ async function getUserProfile(req, res) {
   }
 }
 
+// async function updateProfile(req, res) {
+//   try {
+//     const { userId } = req.params;
+//     const updateUser = await User.findByIdAndUpdate(userId, req.body, { new: true });
+//     return res.status(200).json({ message: 'User details updated successfully', user: updateUser });
+//   } catch (error) {
+//     return res
+//       .status(500)
+//       .json({ message: 'Something went wrong, please try again', error: error.message });
+//   }
+// }
+
 async function updateProfile(req, res) {
   try {
     const { userId } = req.params;
+
+    // Check if dateOfBirth is valid
+    if (req.body.dateOfBirth && isNaN(new Date(req.body.dateOfBirth))) {
+      // If dateOfBirth is invalid, remove it from the update body
+      delete req.body.dateOfBirth;
+    }
+
+    // Update the user details, excluding invalid dateOfBirth if present
     const updateUser = await User.findByIdAndUpdate(userId, req.body, { new: true });
+
     return res.status(200).json({ message: 'User details updated successfully', user: updateUser });
   } catch (error) {
     return res

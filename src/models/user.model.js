@@ -34,6 +34,10 @@ const userSchema = new mongoose.Schema(
     },
     dateOfBirth: {
       type: Date,
+      default: () => {
+        // Return a default UTC date if no date is provided
+        return new Date(Date.UTC(2000, 0, 1)); // Default date (Jan 1, 2000)
+      },
     },
     country: {
       type: String,
@@ -93,6 +97,17 @@ const userSchema = new mongoose.Schema(
       trim: true,
     },
     telephone: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    // for counsellors
+    specialization: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    experience: {
       type: String,
       default: '',
       trim: true,

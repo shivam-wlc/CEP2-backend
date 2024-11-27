@@ -142,7 +142,7 @@ const signup = async (req, res) => {
           </table>
         </body>
       `;
-    // await sendEmail(email, 'Email Verification', html);
+    await sendEmail(email, 'Email Verification', html);
 
     return res.status(201).json({ message: 'User Registration Successful', user: { email } });
   } catch (error) {

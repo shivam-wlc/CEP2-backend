@@ -58,4 +58,13 @@ export default {
     // in the URL will be overridden when the Redis connection is opened.
     db: 0,
   },
+
+  // # Node Mailer Credentials for sending emails
+
+  node_mailer: {
+    user: process.env.NODE_MAILER_USER,
+    pass: process.env.NODE_MAILER_PASSWORD,
+    host: process.env.NODE_MAILER_HOST,
+    port: process.env.NODE_MAILER_PORT,
+  },
 };

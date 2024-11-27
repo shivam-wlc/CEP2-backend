@@ -6,6 +6,8 @@ import { extractVideoId } from '##/src/utility/extractVideoId.js';
 import Comment from '##/src/models/comment.model.js';
 import Rating from '##/src/models/rating.model.js';
 import Like from '##/src/models/like.model.js';
+import Follower from '##/src/models/followers.model.js';
+import UserDetails from '##/src/models/userDetails.model.js';
 
 async function uploadVideo(req, res) {
   try {
@@ -262,6 +264,79 @@ async function deleteVideo(req, res) {
   }
 }
 
+// async function getCreatorProfile(req, res) {
+//   const { userId } = req.params;
+//   try {
+//     const user = await User.findById(userId).select('-password');
+//     if (!user) {
+//       return res.status(404).json({ message: 'User not found' });
+//     }
+//     return res.status(200).json({ user });
+//   } catch (error) {
+//     return res.status(500).json({ message: 'Internal server error' });
+//   }
+// }
+async function getCreatorProfile(req, res) {
+  const { userId } = req.params;
+
+  try {
+    // Run both queries in parallel for better performance
+    const [user, followerCount, userDetails] = await Promise.all([
+      User.findById(userId).select(
+        '-password -updatedAt -role -createdAt -unique_id -isEmailVerified',
+      ), // Fetch user details excluding the password
+      Follower.countDocuments({ followingId: userId }), // Count followers
+      UserDetails.findOne({ userId }).select('socialMediaLinks').lean(),
+    ]);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const socialMediaLinks = userDetails ? userDetails.socialMediaLinks : [];
+
+    // Send user details along with the follower count
+    return res.status(200).json({
+      user,
+      followerCount,
+      socialMediaLinks,
+    });
+  } catch (error) {
+    return res.status(500).json({ message: 'Internal server error', error });
+  }
+}
+
+async function videoDetailById(req, res) {
+  try {
+    const { videoId } = req.params;
+    const videoDetails = await Video.findById(videoId);
+
+    if (!videoDetails) {
+      return res.status(404).json({ message: 'Video not found' });
+    }
+
+    const { creatorId } = videoDetails;
+
+    const creatorDetails = await User.findById(creatorId).select(
+      'firstName lastName profilePicture',
+    );
+
+    if (!creatorDetails) {
+      return res.status(404).json({ message: 'Creator not found' });
+    }
+
+    return res.status(200).json({
+      message: 'Video details fetched successfully',
+      videoDetails,
+      creatorDetails,
+    });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: 'Something went wrong, please try again', error: error.message });
+  }
+}
+
 export {
   uploadVideo,
   uploadThumbnail,
@@ -269,4 +344,6 @@ export {
   uploadYoutubeVideoURL,
   getAllAuthorVideos,
   deleteVideo,
+  getCreatorProfile,
+  videoDetailById,
 };

@@ -1,14 +1,14 @@
 import nodemailer from 'nodemailer';
+import config from '##/src/config/config.js';
 
 const sendEmail = async (to, subject, html) => {
   try {
-    // The user and pass is temporary and it would be changed with career explorer's domain
     const transporter = nodemailer.createTransport({
-      host: 'trackify.ai',
-      port: 465,
+      host: config.node_mailer.host,
+      port: config.node_mailer.port,
       auth: {
-        user: 'support@trackify.ai',
-        pass: 'support@trackify.ai',
+        user: config.node_mailer.user,
+        pass: config.node_mailer.pass,
       },
       tls: {
         rejectUnauthorized: false,
@@ -16,7 +16,7 @@ const sendEmail = async (to, subject, html) => {
     });
 
     const mailOptions = {
-      from: 'support@trackify.ai',
+      from: config.node_mailer.user,
       to,
       subject,
       html,

@@ -16,6 +16,7 @@ import exploreRoute from '##/src/routes/explore.routes.js';
 import likeRoute from '##/src/routes/like.routes.js';
 import ratingRoute from '##/src/routes/rating.routes.js';
 import interestProfileRoute from '##/src/routes/interestProfile.routes.js';
+import followersRoute from '##/src/routes/followers.routes.js';
 
 function routes(app) {
   app.use('/api/auth', authRoutes);
@@ -37,6 +38,8 @@ function routes(app) {
   app.use('/api/like', likeRoute);
   app.use('/api/rating', ratingRoute);
   app.use('/api/interest', interestProfileRoute);
+  //folowers
+  app.use('/api/followers', followersRoute);
 }
 
 export default routes;

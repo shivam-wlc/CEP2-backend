@@ -17,6 +17,9 @@ import likeRoute from '##/src/routes/like.routes.js';
 import ratingRoute from '##/src/routes/rating.routes.js';
 import interestProfileRoute from '##/src/routes/interestProfile.routes.js';
 import followersRoute from '##/src/routes/followers.routes.js';
+import viewsAndSharesRoute from '##/src/routes/viewsAndShares.routes.js';
+import playlistRoute from '##/src/routes/playlist.routes.js';
+import userHistoryRoute from '##/src/routes/userHistory.routes.js';
 
 function routes(app) {
   app.use('/api/auth', authRoutes);
@@ -40,6 +43,12 @@ function routes(app) {
   app.use('/api/interest', interestProfileRoute);
   //folowers
   app.use('/api/followers', followersRoute);
+  //views and shares
+  app.use('/api/viewsAndShares', viewsAndSharesRoute);
+  //playlist
+  app.use('/api/playlist', playlistRoute);
+  //user history
+  app.use('/api/history', userHistoryRoute);
 }
 
 export default routes;

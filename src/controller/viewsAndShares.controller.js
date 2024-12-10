@@ -1,13 +1,28 @@
 import mongoose from 'mongoose';
 import Video from '##/src/models/video.model.js';
+import UserHistory from '##/src/models/userHistory.model.js';
 
 async function increaseCount(req, res, field) {
   try {
     const { videoId } = req.params;
+    const { userId } = req.body;
 
     // Validate ObjectId
     if (!mongoose.Types.ObjectId.isValid(videoId)) {
       return res.status(400).json({ message: 'Invalid video ID' });
+    }
+
+    if (userId && field === 'totalShares') {
+      const userHistory = await UserHistory.findOne({ userId });
+      userHistory.sharedVideos.push({ videoId });
+      await userHistory.save();
+    }
+
+    if (userId && field === 'totalViews') {
+      const userHistory = await UserHistory.findOne({ userId });
+      console.log('userHistory', userHistory);
+      userHistory.watchedVideos.push({ videoId });
+      await userHistory.save();
     }
 
     // Update the count atomically

@@ -33,6 +33,19 @@ const userHistorySchema = new mongoose.Schema(
         },
       },
     ],
+    sharedVideos: [
+      {
+        videoId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'Video',
+        },
+        _id: false, // Prevents automatic generation of _id for sharedVideos
+        sharedAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
   },
   {
     timestamps: true, // Keeps timestamps for the main userHistory document

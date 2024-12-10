@@ -1,7 +1,6 @@
 import Video from '##/src/models/video.model.js';
 import Like from '##/src/models/like.model.js';
 import UserHistory from '##/src/models/userHistory.model.js';
-import Rating from '##/src/models/rating.model.js';
 
 async function toggleLikeVideo(req, res) {
   try {
@@ -65,7 +64,6 @@ async function getLikeStatus(req, res) {
   try {
     const { videoId, userId } = req.params;
     const like = await Like.findOne({ videoId, userId });
-   
 
     let userLiked = false;
     if (like) {

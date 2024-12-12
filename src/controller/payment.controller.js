@@ -7,6 +7,8 @@ const stripe = new Stripe(
   'sk_test_51PBCWbSAamJ9jNQR2vtM69iKJDXXpyP9zc62cJM8FLSY6EtxoPxCj6mMtqLdLne76NYYRhaR3pwYotVwhLUyebkS00aWYlqhoy',
 );
 
+import { v4 as uuidv4 } from 'uuid';
+
 const createPaymentforInterestProfile = async (req, res) => {
   try {
     const { assessmentName, transactionID, paymentStatus, currency, amount } = req.body;
@@ -102,7 +104,7 @@ const successPayment = async (req, res) => {
     req.body ??= {};
     req.params.userId = userId;
     req.body.assessmentName = product;
-    req.body.transactionID = 'abc';
+    req.body.transactionID = uuidv4();
     req.body.paymentStatus = 'success';
     req.body.currency = currency;
     req.body.amount = price;

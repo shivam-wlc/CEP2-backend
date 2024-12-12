@@ -124,6 +124,58 @@ async function removeVideoFromPlaylist(req, res) {
   }
 }
 
+async function moveVideoToDifferentPlaylist(req, res) {
+  try {
+    const { sourcePlaylistId, targetPlaylistId, videoId } = req.body;
+
+    // Validate input
+    if (!sourcePlaylistId || !targetPlaylistId || !videoId) {
+      return res
+        .status(400)
+        .json({ message: 'Source playlist ID, target playlist ID, and video ID are required.' });
+    }
+
+    // Find the source playlist
+    const sourcePlaylist = await Playlist.findById(sourcePlaylistId);
+    if (!sourcePlaylist) {
+      return res.status(404).json({ message: 'Source playlist not found.' });
+    }
+
+    // Check if the video exists in the source playlist
+    const videoIndex = sourcePlaylist.videoId.indexOf(videoId);
+    if (videoIndex === -1) {
+      return res.status(400).json({ message: 'Video not found in the source playlist.' });
+    }
+
+    // Find the target playlist
+    const targetPlaylist = await Playlist.findById(targetPlaylistId);
+    if (!targetPlaylist) {
+      return res.status(404).json({ message: 'Target playlist not found.' });
+    }
+
+    // Remove the video from the source playlist
+    sourcePlaylist.videoId.splice(videoIndex, 1);
+    await sourcePlaylist.save();
+
+    // Add the video to the target playlist if not already present
+    if (!targetPlaylist.videoId.includes(videoId)) {
+      targetPlaylist.videoId.push(videoId);
+      await targetPlaylist.save();
+    }
+
+    res.status(200).json({
+      message: 'Video moved to a different playlist successfully.',
+      sourcePlaylist,
+      targetPlaylist,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: 'Something went wrong, please try again.',
+      error: error.message,
+    });
+  }
+}
+
 async function getUserPlaylist(req, res) {
   try {
     const { userId } = req.params;
@@ -219,5 +271,6 @@ export {
   deletePlaylist,
   addVideoToPlaylist,
   removeVideoFromPlaylist,
+  moveVideoToDifferentPlaylist,
   getUserPlaylist,
 };

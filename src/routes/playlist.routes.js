@@ -7,5 +7,11 @@ playlistRoute.route('/deleteplaylist/:playlistId').delete(playList.deletePlaylis
 playlistRoute.route('/addvideotoplaylist').post(playList.addVideoToPlaylist); //    const { playlistId, videoId } = req.body;
 playlistRoute.route('/removevideofromplaylist').post(playList.removeVideoFromPlaylist);
 playlistRoute.route('/getuserplaylist/:userId').get(playList.getUserPlaylist);
+playlistRoute.route('/movevideo').post(playList.moveVideoToDifferentPlaylist);
+// {
+//     "sourcePlaylistId": "sourcePlaylistId123",
+//     "targetPlaylistId": "targetPlaylistId456",
+//     "videoId": "videoId789"
+//   }
 
 export default playlistRoute;

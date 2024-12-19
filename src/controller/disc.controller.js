@@ -81,7 +81,7 @@ async function saveDiscAnswers(req, res) {
     // Concurrently update DiscProfile and UnifiedRecord
     // Calculate scores
     const scores = calculateScores(answers);
-    console.log('Scores:', scores);
+   
 
     // Update or create the DiscProfile
     const discProfile = await DiscProfile.findOneAndUpdate(

@@ -96,10 +96,6 @@ async function uploadProfilePicture(req, res) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    console.log('req,', req);
-
-    console.log('req.file:', req.file);
-
     const { fileLink, ok } = await uploadToS3(req, 'profilePictures');
 
     if (!ok) {

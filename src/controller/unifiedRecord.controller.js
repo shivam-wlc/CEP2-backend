@@ -146,7 +146,6 @@ async function getUnifiedRecordDataOfUser(req, res) {
     }
 
     const { userId } = unifiedRecord;
-    console.log('Unified id', unifiedId, 'user id', userId);
 
     // Fetch related data concurrently
     const [user, resume, interestProfile, discProfile, survey] = await Promise.all([

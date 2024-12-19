@@ -3,7 +3,7 @@ import UserHistory from '##/src/models/userHistory.model.js';
 async function getUserHistory(req, res) {
   try {
     const { userId } = req.params;
-    console.log('shivam');
+
     if (!userId) {
       return res.status(400).json({ message: 'User ID is required.' });
     }

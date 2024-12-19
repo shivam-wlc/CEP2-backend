@@ -26,8 +26,6 @@ async function getAllVideos(req, res) {
       }),
     ]);
 
-    console.log('videos', videos);
-
     return res.status(200).json({
       videos,
       totalVideos,

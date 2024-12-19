@@ -256,8 +256,6 @@ async function generateResult(req, res) {
 
     await Promise.all(careerPromises);
 
-    console.log('totalData', totalData);
-
     res.status(200).json({ totalData });
   } catch (error) {
     return res

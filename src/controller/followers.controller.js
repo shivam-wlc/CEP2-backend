@@ -56,8 +56,6 @@ const checkIfFollowing = async (req, res) => {
     const { userId } = req.params; // The logged-in user
     const { targetUserId } = req.params; // Target creator's userId
 
-    console.log('userId:', userId);
-
     // Find if the user is already following the target user
     const followRelationship = await Follower.findOne({
       followerId: userId,

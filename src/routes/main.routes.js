@@ -20,6 +20,7 @@ import followersRoute from '##/src/routes/followers.routes.js';
 import viewsAndSharesRoute from '##/src/routes/viewsAndShares.routes.js';
 import playlistRoute from '##/src/routes/playlist.routes.js';
 import userHistoryRoute from '##/src/routes/userHistory.routes.js';
+import schoolContactRoute from '##/src/routes/schoolContact.routes.js';
 
 function routes(app) {
   app.use('/api/auth', authRoutes);
@@ -49,6 +50,9 @@ function routes(app) {
   app.use('/api/playlist', playlistRoute);
   //user history
   app.use('/api/history', userHistoryRoute);
+
+  //school conatct from
+  app.use('/api/schoolContact', schoolContactRoute);
 }
 
 export default routes;

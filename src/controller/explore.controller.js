@@ -40,4 +40,41 @@ async function getAllVideos(req, res) {
   }
 }
 
-export { getAllVideos };
+async function getMostViewedThumbnails(req, res) {
+  try {
+    // Fetch the top 6 most viewed videos sorted by totalViews
+    const videos = await Video.find().sort({ totalViews: -1 }).limit(6).lean();
+
+    // Map over the videos to create the thumbnail links
+    const thumbnails = videos.map((video) => {
+      let thumbnailLink;
+
+      // If video has a direct thumbnail URL
+      if (video.thumbnail) {
+        thumbnailLink = video.thumbnail;
+      }
+      // If video has a YouTube link, generate the thumbnail URL from YouTube video ID
+      else if (video.youtubeLink && video.youtubeVideoId) {
+        thumbnailLink = `https://img.youtube.com/vi/${video.youtubeVideoId}/hqdefault.jpg`;
+      }
+
+      return {
+        title: video.title,
+        videoLink: video.videoLink,
+        thumbnail: thumbnailLink,
+      };
+    });
+
+    return res.status(200).json({
+      message: 'Thumbnails fetched successfully',
+      thumbnails,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: 'Something went wrong, please try again',
+      error: error.message,
+    });
+  }
+}
+
+export { getAllVideos, getMostViewedThumbnails };

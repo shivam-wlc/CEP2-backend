@@ -7,5 +7,6 @@ const exploreRoute = express.Router();
 //  Allowed to All
 
 exploreRoute.route('/getallvideos').get(explore.getAllVideos);
+exploreRoute.route('/getmostviewedthumbnails').get(explore.getMostViewedThumbnails);
 
 export default exploreRoute;

@@ -72,9 +72,16 @@ const userSchema = new mongoose.Schema(
     unique_id: {
       // Add unique_id field
       type: String,
-      required: true,
-      unique: true,
+      // required: true,
+      // unique: true,
+      // default: '',
     },
+    // unique_id: {
+    //   type: String,
+    //   required: function () {
+    //     return this.role !== 'creator';
+    //   },
+    // },
     // add new updated fileds according to design
     middleName: {
       type: String,

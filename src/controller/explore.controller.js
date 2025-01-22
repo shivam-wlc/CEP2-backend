@@ -1,29 +1,71 @@
 import Video from '##/src/models/video.model.js';
 
+// async function getAllVideos(req, res) {
+//   try {
+//     const page = parseInt(req.query.page, 10) || 1;
+//     const limit = parseInt(req.query.limit, 10) || 10; // Videos per page
+//     const searchQuery = req.query.search || '';
+
+//     // Calculate the number of videos to skip
+//     const skip = (page - 1) * limit;
+
+//     // Create a regex for the search query
+//     const searchRegex = new RegExp(searchQuery, 'i');
+
+//     const [videos, totalVideos] = await Promise.all([
+//       Video.find({
+//         title: searchRegex, // Assuming the title field is used for searching
+//       })
+//         .sort({ createdAt: -1 }) // Sort by date (latest first)
+//         .skip(skip)
+//         .limit(limit)
+//         .populate('creatorId', 'firstName lastName')
+//         .lean(), // Use lean to get plain JavaScript objects
+//       Video.countDocuments({
+//         title: searchRegex, // Counting with the same search criteria
+//       }),
+//     ]);
+
+//     return res.status(200).json({
+//       videos,
+//       totalVideos,
+//       currentPage: page,
+//       totalPages: Math.ceil(totalVideos / limit),
+//     });
+//   } catch (error) {
+//     return res.status(500).json({
+//       message: 'Something went wrong, please try again',
+//       error: error.message,
+//     });
+//   }
+// }
+
 async function getAllVideos(req, res) {
   try {
     const page = parseInt(req.query.page, 10) || 1;
-    const limit = parseInt(req.query.limit, 10) || 10; // Videos per page
+    const limit = parseInt(req.query.limit, 10) || 10;
     const searchQuery = req.query.search || '';
+    const category = req.query.category || '';
+    const tags = req.query.tags ? req.query.tags.split(',') : [];
 
-    // Calculate the number of videos to skip
     const skip = (page - 1) * limit;
-
-    // Create a regex for the search query
     const searchRegex = new RegExp(searchQuery, 'i');
 
+    // Construct the query filter
+    const filter = {
+      ...(searchQuery && { title: searchRegex }),
+      ...(category && { category }), // Assuming 'category' is a field in your schema
+      ...(tags.length > 0 && { tags: { $in: tags } }), // Assuming 'tags' is an array field in your schema
+    };
+
     const [videos, totalVideos] = await Promise.all([
-      Video.find({
-        title: searchRegex, // Assuming the title field is used for searching
-      })
-        .sort({ createdAt: -1 }) // Sort by date (latest first)
+      Video.find(filter)
+        .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
         .populate('creatorId', 'firstName lastName')
-        .lean(), // Use lean to get plain JavaScript objects
-      Video.countDocuments({
-        title: searchRegex, // Counting with the same search criteria
-      }),
+        .lean(),
+      Video.countDocuments(filter),
     ]);
 
     return res.status(200).json({

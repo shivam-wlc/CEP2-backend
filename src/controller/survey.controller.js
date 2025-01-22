@@ -8,6 +8,90 @@ import surveyQuestionsData from '##/src/utility/json/surevyQuestions.js';
 import InterestProfile from '##/src/models/interestProfile.model.js';
 import * as onetInterestProfiler from '##/src/services/onet/interestProfiler.onet.service.js';
 
+// async function saveSurveyData(req, res) {
+//   const { userId } = req.params;
+//   const {
+//     educationLevel,
+//     gradePoints,
+//     nextCareerStep,
+//     mostAppealingField,
+//     preferredLocation,
+//     top3thingsForFuture,
+//     nationality,
+//     selectedPathways,
+//   } = req.body;
+
+//   try {
+//     // Validate required fields
+//     if (!userId) {
+//       return res.status(400).json({ message: 'UserId is required' });
+//     }
+//     if (
+//       !educationLevel ||
+//       !gradePoints ||
+//       !nextCareerStep ||
+//       !mostAppealingField ||
+//       !preferredLocation ||
+//       !top3thingsForFuture ||
+//       !nationality ||
+//       !selectedPathways
+//     ) {
+//       return res.status(400).json({ message: 'All fields are required' });
+//     }
+
+//     // Check if the survey already exists for the user
+//     let survey = await Survey.findOne({ userId });
+
+//     if (survey) {
+//       // Update existing survey
+//       survey.educationLevel = educationLevel;
+//       survey.gradePoints = gradePoints;
+//       survey.nextCareerStep = nextCareerStep;
+//       survey.mostAppealingField = mostAppealingField;
+//       survey.preferredLocation = preferredLocation;
+//       survey.top3thingsForFuture = top3thingsForFuture;
+//       survey.nationality = nationality;
+//       survey.selectedPathways = selectedPathways;
+
+//       await survey.save();
+//     } else {
+//       // Create new survey
+//       survey = new Survey({
+//         userId,
+//         educationLevel,
+//         gradePoints,
+//         nextCareerStep,
+//         mostAppealingField,
+//         preferredLocation,
+//         top3thingsForFuture,
+//         nationality,
+//         selectedPathways,
+//       });
+
+//       await survey.save();
+//     }
+
+//     // Find the UnifiedRecord in parallel
+//     const userUnifiedRecord = await UnifiedRecord.findOne({ userId });
+
+//     if (!userUnifiedRecord) {
+//       return res.status(404).json({ message: 'UnifiedRecord not found' });
+//     }
+
+//     // Update UnifiedRecord
+//     userUnifiedRecord.survey.isTaken = true;
+//     userUnifiedRecord.survey.surveyId = survey._id;
+//     await userUnifiedRecord.save();
+
+//     // updating interest profile
+//     interestProfileOptimisation(userId, selectedPathways);
+
+//     res.status(201).json({ message: 'Survey data saved successfully!' });
+//   } catch (error) {
+//     res.status(500).json({ message: 'Error saving survey data', error: error.message });
+//   }
+// }
+
 async function saveSurveyData(req, res) {
   const { userId } = req.params;
   const {
@@ -39,54 +123,47 @@ async function saveSurveyData(req, res) {
       return res.status(400).json({ message: 'All fields are required' });
     }
 
-    // Check if the survey already exists for the user
-    let survey = await Survey.findOne({ userId });
-
-    if (survey) {
-      // Update existing survey
-      survey.educationLevel = educationLevel;
-      survey.gradePoints = gradePoints;
-      survey.nextCareerStep = nextCareerStep;
-      survey.mostAppealingField = mostAppealingField;
-      survey.preferredLocation = preferredLocation;
-      survey.top3thingsForFuture = top3thingsForFuture;
-      survey.nationality = nationality;
-      survey.selectedPathways = selectedPathways;
-
-      await survey.save();
-    } else {
-      // Create new survey
-      survey = new Survey({
-        userId,
-        educationLevel,
-        gradePoints,
-        nextCareerStep,
-        mostAppealingField,
-        preferredLocation,
-        top3thingsForFuture,
-        nationality,
-        selectedPathways,
-      });
-
-      await survey.save();
-    }
-
-    // Find the UnifiedRecord in parallel
+    // Fetch UnifiedRecord
     const userUnifiedRecord = await UnifiedRecord.findOne({ userId });
-
     if (!userUnifiedRecord) {
       return res.status(404).json({ message: 'UnifiedRecord not found' });
     }
 
-    // Update UnifiedRecord
-    userUnifiedRecord.survey.isTaken = true;
-    userUnifiedRecord.survey.surveyId = survey._id;
+    // Determine the next attempt number
+    const currentAttempt = 4 - userUnifiedRecord.combinedPayment.remainingAttempts;
+
+    if (currentAttempt > 3) {
+      return res.status(400).json({ message: 'No attempts remaining. Please make a new payment.' });
+    }
+
+    // Create new survey for the current attempt
+    const survey = new Survey({
+      userId,
+      attemptNumber: currentAttempt,
+      educationLevel,
+      gradePoints,
+      nextCareerStep,
+      mostAppealingField,
+      preferredLocation,
+      top3thingsForFuture,
+      nationality,
+      selectedPathways,
+    });
+
+    await survey.save();
+
+    // Update UnifiedRecord with new survey
+    userUnifiedRecord.survey.push({ surveyId: survey._id, timestamp: new Date(), isTaken: true }); // Store multiple surveys
+    userUnifiedRecord.combinedPayment.remainingAttempts -= 1;
     await userUnifiedRecord.save();
 
-    // updating interest profile
-    interestProfileOptimisation(userId, selectedPathways);
+    // Optimise interest profile based on selected pathways
+    interestProfileOptimisation(userId, selectedPathways, currentAttempt);
 
-    res.status(201).json({ message: 'Survey data saved successfully!' });
+    res.status(201).json({
+      message: 'Survey data saved successfully!',
+      attemptNumber: currentAttempt,
+    });
   } catch (error) {
     res.status(500).json({ message: 'Error saving survey data', error: error.message });
   }
@@ -95,9 +172,12 @@ async function saveSurveyData(req, res) {
 // Interest Profile Optimisation on the basis of Career Cluster and Pathways
 
 // Interest Profile Optimisation on the basis of Career Cluster and Pathways
-async function interestProfileOptimisation(userId, selectedPathways) {
+async function interestProfileOptimisation(userId, selectedPathways, currentAttempt) {
   try {
-    const userInterestProfile = await InterestProfile.findOne({ userId });
+    const userInterestProfile = await InterestProfile.findOne({
+      userId,
+      attemptNumber: currentAttempt,
+    });
     if (!userInterestProfile) {
       throw new Error('InterestProfile not found');
     }

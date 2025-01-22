@@ -5,6 +5,7 @@ import DiscProfile from '##/src/models/disc.model.js';
 import Survey from '##/src/models/survey.model.js';
 import Resume from '##/src/models/resume.model.js';
 import mongoose from 'mongoose';
+import { uploadToS3 } from '##/src/config/lib/S3.js';
 
 async function getUnifiedRecordData(req, res) {
   try {
@@ -14,7 +15,7 @@ async function getUnifiedRecordData(req, res) {
       return res.status(400).json({ message: 'User ID is required' });
     }
 
-    const unifiedRecordData = await UnifiedRecord.findOne({ userId });
+    const unifiedRecordData = await UnifiedRecord.findOne({ userId }).lean();
 
     if (!unifiedRecordData) {
       return res.status(404).json({ message: 'Unified record not found' });
@@ -193,9 +194,38 @@ async function updateResumeStatus(req, res) {
   }
 }
 
+async function saveCdrToStorgae(req, res) {
+  try {
+    const { userId } = req.params;
+
+    console.log('userId', userId);
+
+    const unifiedData = await UnifiedRecord.findOne({ userId });
+    if (!unifiedData) {
+      return res.status(404).json({ message: 'Unified record not found' });
+    }
+
+    const { fileLink, ok } = await uploadToS3(req, 'cdrs');
+
+    if (!ok) {
+      return res.status(400).json({ message: 'No file uploaded', ok: false });
+    }
+
+    unifiedData.cdrLinks.push({ link: fileLink, statue: true, timestamp: Date.now() });
+    await unifiedData.save();
+
+    return res.status(200).json({ message: 'Cdr uploaded successfully', cdrLink: fileLink });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: 'Something went wrong, please try again', error: error.message });
+  }
+}
+
 export {
   getUnifiedRecordData,
   getAllUnifiedRecordData,
   getUnifiedRecordDataOfUser,
   updateResumeStatus,
+  saveCdrToStorgae,
 };

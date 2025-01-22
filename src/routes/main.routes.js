@@ -21,17 +21,21 @@ import viewsAndSharesRoute from '##/src/routes/viewsAndShares.routes.js';
 import playlistRoute from '##/src/routes/playlist.routes.js';
 import userHistoryRoute from '##/src/routes/userHistory.routes.js';
 import schoolContactRoute from '##/src/routes/schoolContact.routes.js';
+import supportRoutes from '##/src/routes/support.routes.js';
+import careerPlanningRoute from '##/src/routes/careerPlanning.routes.js';
 
 function routes(app) {
   app.use('/api/auth', authRoutes);
   app.use('/api/profile', profileRoutes);
   app.use('/api/creator', creatorRoute);
   app.use('/api/survey', isAuthenticated, surveyRoute);
-  app.use('/api/onet', isAuthenticated, onetRoutes);
+  // app.use('/api/onet', isAuthenticated, onetRoutes);
+  app.use('/api/onet', onetRoutes);
+
   // app.use('/api/unifiedrecord', isAuthenticated, unifiedRecordRoute);
   app.use('/api/unifiedrecord', unifiedRecordRoute);
 
-  app.use('/api/payment', isAuthenticated, paymentRoute);
+  app.use('/api/payment', paymentRoute);
   app.use('/api/admin', adminRoutes);
   app.use('/api/user-details', userDetailRoutes);
   app.use('/api/comment', commentRoutes);
@@ -53,6 +57,12 @@ function routes(app) {
 
   //school conatct from
   app.use('/api/schoolContact', schoolContactRoute);
+
+  //support
+  app.use('/api/support', supportRoutes);
+
+  //career planning
+  app.use('/api/careerPlanning', careerPlanningRoute);
 }
 
 export default routes;

@@ -26,6 +26,10 @@ const userHistorySchema = new mongoose.Schema(
           type: mongoose.Schema.Types.ObjectId,
           ref: 'Video',
         },
+        myNotes: {
+          type: String,
+          default: '',
+        },
         _id: false, // Prevents automatic generation of _id for likedVideos
         likedAt: {
           type: Date,

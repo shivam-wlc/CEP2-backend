@@ -7,6 +7,10 @@ const surveySchema = new mongoose.Schema(
       ref: 'User',
       required: true,
     },
+    attemptNumber: {
+      type: Number,
+      required: true, // Track attempt number (1, 2, 3, etc.)
+    },
     educationLevel: {
       type: String,
       required: true,

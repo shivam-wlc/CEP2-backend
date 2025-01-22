@@ -30,6 +30,10 @@ creatorRoute
   .route('/deletevideo/:userId/:videoId')
   .delete(isAuthenticated, isRouteAllowed(['creator']), creator.deleteVideo);
 
+creatorRoute.route('/getgeneralvideodata/:userId').get(creator.getGeneralVideoData);
+creatorRoute.route('/userAnalytics/:userId').get(creator.getUserAnalytics);
+creatorRoute.route('/monthlyAnalytics/:userId').get(creator.getMonthlyAnalytics);
+
 // Allowed All To See Creator Profile
 creatorRoute.route('/getcreatorprofile/:userId').get(creator.getCreatorProfile);
 creatorRoute.route('/video/:videoId').get(creator.videoDetailById);

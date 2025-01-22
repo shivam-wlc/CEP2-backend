@@ -8,12 +8,12 @@ async function getGeneralInformation(req, res) {
 
     const [totalUsers, totalCreators, newUsersLast7Days, maleCount, femaleCount, otherGenderCount] =
       await Promise.all([
-        User.countDocuments({ role: 'user' }),
-        User.countDocuments({ role: 'creator' }),
-        User.countDocuments({ createdAt: { $gte: sevenDaysAgo } }),
-        User.countDocuments({ gender: 'male' }),
-        User.countDocuments({ gender: 'female' }),
-        User.countDocuments({ gender: { $nin: ['male', 'female'] } }),
+        User.countDocuments({ role: { $ne: 'admin' }, role: 'user' }),
+        User.countDocuments({ role: { $ne: 'admin' }, role: 'creator' }),
+        User.countDocuments({ createdAt: { $gte: sevenDaysAgo }, role: { $ne: 'admin' } }),
+        User.countDocuments({ gender: 'male', role: { $ne: 'admin' } }),
+        User.countDocuments({ gender: 'female', role: { $ne: 'admin' } }),
+        User.countDocuments({ gender: { $nin: ['male', 'female'] }, role: { $ne: 'admin' } }),
       ]);
 
     return res.status(200).json({

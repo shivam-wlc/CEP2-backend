@@ -7,6 +7,7 @@ const resumeSchema = new mongoose.Schema(
       {
         link: { type: String }, // Resume link
         userComment: { type: String, default: '' }, // Comment for the specific resume
+        purposeOfResume: { type: String, default: '' },
         timestamp: { type: Date, default: Date.now },
       },
     ],

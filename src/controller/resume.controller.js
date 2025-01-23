@@ -132,4 +132,99 @@ const updateComment = async (req, res) => {
   }
 };
 
-export { getResume, updateResume, saveToStorage, updateComment };
+const updatePurpose = async (req, res) => {
+  try {
+    const { resumeId, userId } = req.params; // Extract resume ID and userId from params
+    const { purpose } = req.body; // Extract purpose from body
+
+    // Validate inputs
+    if (!resumeId || !userId || !purpose) {
+      return res.status(400).json({
+        message: 'User ID, Resume ID, and updated purpose are required',
+      });
+    }
+
+    // Find the resume document by userId
+    const resume = await Resume.findOne({ userId });
+
+    // Check if resume exists
+    if (!resume) {
+      return res.status(404).json({ message: 'Resume not found for the provided user ID' });
+    }
+
+    // Find the specific entry in the resumeLinks array
+    const entryIndex = resume.resumeLinks.findIndex((link) => link._id.toString() === resumeId);
+
+    // If the entry does not exist in the resumeLinks array
+    if (entryIndex === -1) {
+      return res.status(404).json({ message: 'Resume entry not found in the specified resume' });
+    }
+
+    // Update the purpose field
+    resume.resumeLinks[entryIndex].purposeOfResume = purpose;
+
+    // Save the updated resume
+    const updatedResume = await resume.save();
+
+    // Return the updated resume data
+    return res.status(200).json({
+      message: 'Purpose updated successfully',
+      data: updatedResume,
+    });
+  } catch (error) {
+    // Handle server errors
+    return res.status(500).json({
+      message: 'Internal server error',
+      error: error.message,
+    });
+  }
+};
+
+const deleteResume = async (req, res) => {
+  try {
+    const { resumeId, userId } = req.params; // Extract resume ID and userId from params
+
+    // Validate inputs
+    if (!resumeId || !userId) {
+      return res.status(400).json({
+        message: 'User ID and Resume ID are required',
+      });
+    }
+
+    // Find the resume document by userId
+    const resume = await Resume.findOne({ userId });
+
+    // Check if resume exists
+    if (!resume) {
+      return res.status(404).json({ message: 'Resume not found for the provided user ID' });
+    }
+
+    // Find the specific entry in the resumeLinks array
+    const entryIndex = resume.resumeLinks.findIndex((link) => link._id.toString() === resumeId);
+
+    // If the entry does not exist in the resumeLinks array
+    if (entryIndex === -1) {
+      return res.status(404).json({ message: 'Resume entry not found in the specified resume' });
+    }
+
+    // Remove the specific entry
+    resume.resumeLinks.splice(entryIndex, 1);
+
+    // Save the updated resume document
+    const updatedResume = await resume.save();
+
+    // Return the updated resume data
+    return res.status(200).json({
+      message: 'Resume entry deleted successfully',
+      data: updatedResume,
+    });
+  } catch (error) {
+    // Handle server errors
+    return res.status(500).json({
+      message: 'Internal server error',
+      error: error.message,
+    });
+  }
+};
+
+export { getResume, updateResume, saveToStorage, updateComment, updatePurpose, deleteResume };

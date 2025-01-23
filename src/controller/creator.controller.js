@@ -10,6 +10,106 @@ import Follower from '##/src/models/followers.model.js';
 import UserDetails from '##/src/models/userDetails.model.js';
 import userHistory from '##/src/models/userHistory.model.js';
 
+// async function getUserAnalytics(req, res) {
+//   try {
+//     const { userId } = req.params; // User ID of the creator for analytics
+
+//     // Fetch all watched history documents
+//     const watchedHistories = await userHistory.find({});
+//     const users = await User.find({}); // Fetch all users for demographics
+
+//     if (!watchedHistories || watchedHistories.length === 0) {
+//       return res.status(404).json({ message: 'No watched history found.' });
+//     }
+
+//     // Initialize a country count object
+//     let countryCount = {};
+
+//     // Loop through all watched history documents
+//     for (let history of watchedHistories) {
+//       let watchedVideos = history.watchedVideos;
+//       let userIdFromHistory = history.userId; // Directly access userId from the document
+
+//       // Skip if no watched videos in the document
+//       if (!watchedVideos || watchedVideos.length === 0) {
+//         continue;
+//       }
+
+//       // Loop through each watched video in the current document
+//       for (let videoEntry of watchedVideos) {
+//         let videoId = videoEntry.videoId?.$oid || videoEntry.videoId; // Handle nested `$oid`
+
+//         if (!videoId) continue;
+
+//         // Find the video by videoId
+//         let video = await Video.findById(videoId);
+
+//         if (!video) {
+//           console.log(`Video not found: ${videoId}`);
+//           continue;
+//         }
+
+//         // Check if the video was uploaded by the creator
+//         if (video.creatorId.toString() === userId) {
+//           // Find the user by userId from the watched history
+//           let user = await User.findById(userIdFromHistory);
+
+//           if (user && user.nationality) {
+//             // Increase the count of users per nationality
+//             countryCount[user.nationality] = (countryCount[user.nationality] || 0) + 1;
+//           }
+//         }
+//       }
+//     }
+
+//     // Convert countryCount object to an array of objects
+//     const userData = Object.entries(countryCount).map(([country, users]) => ({
+//       country,
+//       users,
+//     }));
+
+//     // Generate demographics data
+//     let demographicsData = [
+//       { name: '18-24', male: 0, female: 0 },
+//       { name: '25-34', male: 0, female: 0 },
+//       { name: '35-44', male: 0, female: 0 },
+//       { name: '45-54', male: 0, female: 0 },
+//       { name: '55-64', male: 0, female: 0 },
+//       { name: '65+', male: 0, female: 0 },
+//     ];
+
+//     const currentYear = new Date().getFullYear();
+
+//     for (let user of users) {
+//       if (!user.dateOfBirth || !user.gender) continue;
+
+//       const birthYear = new Date(user.dateOfBirth.$date || user.dateOfBirth).getFullYear();
+//       const age = currentYear - birthYear;
+//       const gender = user.gender.toLowerCase(); // Ensure gender is lowercase
+
+//       // Determine the age group
+//       let ageGroupIndex;
+//       if (age >= 18 && age <= 24) ageGroupIndex = 0;
+//       else if (age >= 25 && age <= 34) ageGroupIndex = 1;
+//       else if (age >= 35 && age <= 44) ageGroupIndex = 2;
+//       else if (age >= 45 && age <= 54) ageGroupIndex = 3;
+//       else if (age >= 55 && age <= 64) ageGroupIndex = 4;
+//       else if (age >= 65) ageGroupIndex = 5;
+
+//       // Increment the appropriate gender count
+//       if (ageGroupIndex !== undefined && (gender === 'male' || gender === 'female')) {
+//         demographicsData[ageGroupIndex][gender]++;
+//       }
+//     }
+
+//     // Respond with both user data and demographics data
+//     res.status(200).json({ userData, demographicsData });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ message: 'Error fetching analytics data' });
+//   }
+// }
+
 async function getUserAnalytics(req, res) {
   try {
     const { userId } = req.params; // User ID of the creator for analytics
@@ -70,12 +170,12 @@ async function getUserAnalytics(req, res) {
 
     // Generate demographics data
     let demographicsData = [
-      { name: '18-24', male: 0, female: 0 },
-      { name: '25-34', male: 0, female: 0 },
-      { name: '35-44', male: 0, female: 0 },
-      { name: '45-54', male: 0, female: 0 },
-      { name: '55-64', male: 0, female: 0 },
-      { name: '65+', male: 0, female: 0 },
+      { name: '16-18', male: 0, female: 0 },
+      { name: '19-21', male: 0, female: 0 },
+      { name: '22-24', male: 0, female: 0 },
+      { name: '25-27', male: 0, female: 0 },
+      { name: '28-30', male: 0, female: 0 },
+      { name: '30+', male: 0, female: 0 },
     ];
 
     const currentYear = new Date().getFullYear();
@@ -89,12 +189,12 @@ async function getUserAnalytics(req, res) {
 
       // Determine the age group
       let ageGroupIndex;
-      if (age >= 18 && age <= 24) ageGroupIndex = 0;
-      else if (age >= 25 && age <= 34) ageGroupIndex = 1;
-      else if (age >= 35 && age <= 44) ageGroupIndex = 2;
-      else if (age >= 45 && age <= 54) ageGroupIndex = 3;
-      else if (age >= 55 && age <= 64) ageGroupIndex = 4;
-      else if (age >= 65) ageGroupIndex = 5;
+      if (age >= 16 && age <= 18) ageGroupIndex = 0;
+      else if (age >= 19 && age <= 21) ageGroupIndex = 1;
+      else if (age >= 22 && age <= 24) ageGroupIndex = 2;
+      else if (age >= 25 && age <= 27) ageGroupIndex = 3;
+      else if (age >= 28 && age <= 30) ageGroupIndex = 4;
+      else if (age > 30) ageGroupIndex = 5;
 
       // Increment the appropriate gender count
       if (ageGroupIndex !== undefined && (gender === 'male' || gender === 'female')) {

@@ -11,6 +11,7 @@ import Resume from '##/src/models/resume.model.js';
 import { checkPassStrength, isValidEmail } from '##/utility/validate.js';
 import UniqueIDCounter from '##/src/models/uniqueIdCounter.model.js';
 import ReportData from '##/src/models/reportData.model.js';
+import { v4 as uuidv4 } from 'uuid';
 
 const signup = async (req, res) => {
   try {
@@ -66,6 +67,8 @@ const signup = async (req, res) => {
           }
         }
       }
+    } else {
+      unique_id = uuidv4();
     }
 
     // Create user document
@@ -80,7 +83,7 @@ const signup = async (req, res) => {
       activeDashboard: role,
       mobile,
       gender,
-      unique_id: role !== 'creator' ? unique_id : '', // Assign unique_id only for non-creators
+      unique_id: role !== 'creator' ? unique_id : uuidv4(),
     });
 
     // Save user
@@ -244,7 +247,7 @@ const signup = async (req, res) => {
 
     const html = user.role === 'creator' ? counsellorHtml : studentHtml;
 
-    // await sendEmail(email, 'Email Verification', html);
+    await sendEmail(email, 'Email Verification', html);
 
     return res.status(201).json({ message: 'User Registration Successful', user: { email } });
   } catch (error) {

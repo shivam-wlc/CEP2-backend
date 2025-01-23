@@ -211,7 +211,7 @@ async function saveCdrToStorgae(req, res) {
       return res.status(400).json({ message: 'No file uploaded', ok: false });
     }
 
-    unifiedData.cdrLinks.push({ link: fileLink, statue: true, timestamp: Date.now() });
+    unifiedData.cdrLinks.push({ link: fileLink, status: true, timestamp: Date.now() });
     await unifiedData.save();
 
     return res.status(200).json({ message: 'Cdr uploaded successfully', cdrLink: fileLink });

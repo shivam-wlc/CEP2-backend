@@ -3,9 +3,22 @@ import mongoose from 'mongoose';
 const resumeSchema = new mongoose.Schema(
   {
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+    resumeLinks: [
+      {
+        link: { type: String }, // Resume link
+        userComment: { type: String, default: '' }, // Comment for the specific resume
+        timestamp: { type: Date, default: Date.now },
+      },
+    ],
     personalInfo: {
       firstName: { type: String },
+      middleName: { type: String },
       lastName: { type: String },
+      userName: { type: String },
+      gender: { type: String },
+      birthdate: { type: Date },
+      nationality: { type: String },
+      telephone: { type: String },
       email: { type: String },
       mobile: { type: String },
       address: { type: String },
@@ -21,6 +34,7 @@ const resumeSchema = new mongoose.Schema(
         startDate: { type: Date },
         endDate: { type: Date },
         grade: { type: String }, // GPA or equivalent
+        website: { type: String },
       },
     ],
     experience: [

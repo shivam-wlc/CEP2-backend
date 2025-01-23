@@ -16,7 +16,8 @@ const sendEmail = async (to, subject, html) => {
     });
 
     const mailOptions = {
-      from: config.node_mailer.user,
+      // from: config.node_mailer.user,
+      from: `"Team Career Explorer" <noreply@careerexplorer.me>`,
       to,
       subject,
       html,

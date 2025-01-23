@@ -10,10 +10,13 @@ import Playlist from '##/src/models/playlist.model.js';
 import Resume from '##/src/models/resume.model.js';
 import { checkPassStrength, isValidEmail } from '##/utility/validate.js';
 import UniqueIDCounter from '##/src/models/uniqueIdCounter.model.js';
+import ReportData from '##/src/models/reportData.model.js';
+import { v4 as uuidv4 } from 'uuid';
 
 const signup = async (req, res) => {
   try {
     const { firstName, lastName, email, password, mobile, role, gender } = req.body;
+    console.log('req.body', req.body);
 
     if (!isValidEmail(email)) {
       return res.status(400).json({ message: 'Email is invalid' });
@@ -35,34 +38,37 @@ const signup = async (req, res) => {
 
     let status = role === 'creator' ? 'pending' : 'active';
 
-    // Get the current year and month in YYYYMM format
-    const currentYearMonth = new Date().toISOString().slice(0, 7).replace('-', '');
+    // Generate unique_id only for non-creators (users)
+    let unique_id = '';
+    if (role !== 'creator') {
+      // Get the current year and month in YYYYMM format
+      const currentYearMonth = new Date().toISOString().slice(0, 7).replace('-', '');
+      const MAX_RETRIES = 5;
+      let retryCount = 0;
+      while (retryCount < MAX_RETRIES) {
+        try {
+          const counter = await UniqueIDCounter.findOneAndUpdate(
+            { yearMonth: currentYearMonth },
+            { $inc: { sequenceNumber: 1 } },
+            { new: true, upsert: true }, // Create if it doesn't exist
+          );
 
-    // Use atomic operation to get and update the sequence number
-    let unique_id;
-    const MAX_RETRIES = 5; // Maximum number of retries
-    let retryCount = 0;
+          const sequentialNumber = counter.sequenceNumber;
+          unique_id = `${currentYearMonth}${sequentialNumber.toString().padStart(4, '0')}`;
 
-    while (retryCount < MAX_RETRIES) {
-      try {
-        const counter = await UniqueIDCounter.findOneAndUpdate(
-          { yearMonth: currentYearMonth },
-          { $inc: { sequenceNumber: 1 } },
-          { new: true, upsert: true }, // Create if it doesn't exist
-        );
-
-        const sequentialNumber = counter.sequenceNumber;
-        unique_id = `${currentYearMonth}${sequentialNumber.toString().padStart(4, '0')}`;
-
-        break; // Break out of the loop on success
-      } catch (error) {
-        retryCount++;
-        if (retryCount === MAX_RETRIES) {
-          return res
-            .status(500)
-            .json({ message: 'Failed to generate unique ID', error: error.message });
+          break; // Break out of the loop on success
+        } catch (error) {
+          retryCount++;
+          if (retryCount === MAX_RETRIES) {
+            return res.status(500).json({
+              message: 'Failed to generate unique ID',
+              error: error.message,
+            });
+          }
         }
       }
+    } else {
+      unique_id = uuidv4();
     }
 
     // Create user document
@@ -77,71 +83,170 @@ const signup = async (req, res) => {
       activeDashboard: role,
       mobile,
       gender,
-      unique_id,
+      unique_id: role !== 'creator' ? unique_id : uuidv4(),
     });
 
-    // Save user, userDetails, unifiedRecord, and userHistory in parallel
+    // Save user
     await user.save();
 
+    // Create userDetails for both users and creators
     const userDetails = new UserDetails({
       userId: user._id,
     });
 
-    const newResume = new Resume({
-      userId: user._id,
-      personalInfo: {
-        // Add the colon here
-        firstName,
-        lastName,
-        email,
-        mobile,
-      },
-    });
+    await userDetails.save();
 
-    await newResume.save();
+    // Skip creation of other records for creators
+    if (role !== 'creator') {
+      const newResume = new Resume({
+        userId: user._id,
+        personalInfo: {
+          firstName,
+          lastName,
+          email,
+          mobile,
+        },
+      });
 
-    const newUnifiedRecord = new UnifiedRecord({
-      userId: user._id,
-      unique_id,
-      userDetailsId: userDetails._id,
-      interestProfile: { isTaken: false },
-      discProfile: { isTaken: false },
-      survey: { isTaken: false },
-      resume: { isCompleted: false, resumeId: newResume._id },
-    });
+      const newUnifiedRecord = new UnifiedRecord({
+        userId: user._id,
+        unique_id,
+        userDetailsId: userDetails._id,
+        interestProfile: { isTaken: false },
+        discProfile: { isTaken: false },
+        survey: { isTaken: false },
+        resume: { isCompleted: false, resumeId: newResume._id },
+      });
 
-    const newPlaylist = new Playlist({ userId: user._id });
+      const newReportData = new ReportData({
+        userId: user._id,
+      });
 
-    const userHistory = new UserHistory({ userId: user._id });
+      const newPlaylist = new Playlist({ userId: user._id });
+      const userHistory = new UserHistory({ userId: user._id });
 
-    await Promise.all([
-      userDetails.save(),
-      newUnifiedRecord.save(),
-      userHistory.save(),
-      newPlaylist.save(),
-    ]);
+      // Save unifiedRecord and playlist for non-creators
+      await Promise.all([
+        newResume.save(),
+        newUnifiedRecord.save(),
+        newPlaylist.save(),
+        userHistory.save(),
+        newReportData.save(),
+      ]);
+    }
 
     // Generate token and send email
     const token = signJwt({ email: user.email, id: user._id }, '7d', 'access');
     const verificationLink = `${config.domain.app}/verify-email?token=${token}`;
 
-    const html = `
-        <body style="font-family: Arial, sans-serif; margin: 0; padding: 0">
-          <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">
-            <tr>
-              <td align="center" style="padding: 20px 0">
-                <h1 style="font-size: 24px; margin-bottom: 20px">Confirm Your Email Address</h1>
-                <p style="font-size: 16px; margin-bottom: 20px">
-                  Please click the button below to confirm your email address.
-                </p>
-                <a href=${verificationLink} style="display: inline-block; padding: 10px 20px; background-color: #007bff; color: #fff; text-decoration: none; border-radius: 5px;">
-                  Confirm Email
-                </a>
-              </td>
-            </tr>
-          </table>
-        </body>
-      `;
+    const studentHtml = `<body
+    style="
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    "
+  >
+    <div
+      style="
+        width: 100%;
+        max-width: 600px;
+        margin: 0 auto;
+        background-color: #ffffff;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      "
+    >
+      <div style="text-align: center; color: #333333; margin-bottom: 20px">
+        <h2>Thank you for confirming your email address!</h2>
+      </div>
+      <div style="text-align: center; font-size: 16px; color: #555555">
+        <p>
+          Thank you for confirming your email address. You are good to go and
+          carry on Exploring
+        </p>
+      </div>
+      <div style="text-align: center; margin-top: 30px">
+        <a
+          href=${verificationLink}
+          style="
+            background: linear-gradient(
+              124.89deg,
+              #bf2f75 -3.87%,
+              #720361 63.8%
+            );
+            width: 150px;
+            padding: 10px 0;
+            font-weight: bold;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 90px;
+            display: inline-block;
+          "
+          >Let's Go</a
+        >
+        <p><strong>Team CareerExplorer</strong></p>
+      </div>
+    </div>
+  </body>`;
+
+    const counsellorHtml = `<body
+     style="
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    "
+  >
+    <div
+      style="
+        width: 100%;
+        max-width: 600px;
+        margin: 0 auto;
+        background-color: #ffffff;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      "
+    >
+      <div style="text-align: center; color: #333333; margin-bottom: 20px">
+        <h2>Thank you for confirming your email address!</h2>
+      </div>
+      <div style="text-align: center; font-size: 16px; color: #555555">
+        <p>
+          Welcome to the CareerExplorer.me community We look forward to your
+          contributions
+        </p>
+      </div>
+      <div style="text-align: center; margin-top: 30px">
+        <a
+         href=${verificationLink}
+          style="
+            background: linear-gradient(
+              124.89deg,
+              #bf2f75 -3.87%,
+              #720361 63.8%
+            );
+            width: 150px;
+            padding: 10px 0;
+            font-weight: bold;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 90px;
+            display: inline-block;
+          "
+          >Let's Go</a
+        >
+        <p><strong>Team CareerExplorer</strong></p>
+      </div>
+    </div>
+  </body>`;
+
+    const html = user.role === 'creator' ? counsellorHtml : studentHtml;
+
     await sendEmail(email, 'Email Verification', html);
 
     return res.status(201).json({ message: 'User Registration Successful', user: { email } });
@@ -186,7 +291,7 @@ const forgetPassword = async (req, res) => {
     const link = `${config.domain.app}/create-new-password?user=${user._id}&token=${token}`;
 
     const html = `<div><a href='${link}'>Reset Link</a></div>`;
-    // await sendEmail(email, 'Reset Password', html);
+    await sendEmail(email, 'Reset Password', html);
 
     return res.status(200).json({ message: 'Reset link sent to your e-mail' });
   } catch (error) {
@@ -204,9 +309,9 @@ const verifyEmailLinkAndUpdate = async (req, res) => {
     const user = await User.findById(userId);
 
     if (!password || !confirmPassword) {
-      return res
-        .status(400)
-        .json({ message: 'Password and confirm password fields cannot be empty.' });
+      return res.status(400).json({
+        message: 'Password and confirm password fields cannot be empty.',
+      });
     }
 
     if (!user) {

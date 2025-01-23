@@ -154,6 +154,10 @@ const discProfileSchema = new mongoose.Schema(
       ref: 'User',
       required: true,
     },
+    attemptNumber: {
+      type: Number,
+      required: true, // Track attempt number (1, 2, 3, etc.)
+    },
     payment: {
       isPaid: {
         type: Boolean,

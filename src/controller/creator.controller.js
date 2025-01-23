@@ -8,6 +8,154 @@ import Rating from '##/src/models/rating.model.js';
 import Like from '##/src/models/like.model.js';
 import Follower from '##/src/models/followers.model.js';
 import UserDetails from '##/src/models/userDetails.model.js';
+import userHistory from '##/src/models/userHistory.model.js';
+
+async function getUserAnalytics(req, res) {
+  try {
+    const { userId } = req.params; // User ID of the creator for analytics
+
+    // Fetch all watched history documents
+    const watchedHistories = await userHistory.find({});
+    const users = await User.find({}); // Fetch all users for demographics
+
+    if (!watchedHistories || watchedHistories.length === 0) {
+      return res.status(404).json({ message: 'No watched history found.' });
+    }
+
+    // Initialize a country count object
+    let countryCount = {};
+
+    // Loop through all watched history documents
+    for (let history of watchedHistories) {
+      let watchedVideos = history.watchedVideos;
+      let userIdFromHistory = history.userId; // Directly access userId from the document
+
+      // Skip if no watched videos in the document
+      if (!watchedVideos || watchedVideos.length === 0) {
+        continue;
+      }
+
+      // Loop through each watched video in the current document
+      for (let videoEntry of watchedVideos) {
+        let videoId = videoEntry.videoId?.$oid || videoEntry.videoId; // Handle nested `$oid`
+
+        if (!videoId) continue;
+
+        // Find the video by videoId
+        let video = await Video.findById(videoId);
+
+        if (!video) {
+          console.log(`Video not found: ${videoId}`);
+          continue;
+        }
+
+        // Check if the video was uploaded by the creator
+        if (video.creatorId.toString() === userId) {
+          // Find the user by userId from the watched history
+          let user = await User.findById(userIdFromHistory);
+
+          if (user && user.nationality) {
+            // Increase the count of users per nationality
+            countryCount[user.nationality] = (countryCount[user.nationality] || 0) + 1;
+          }
+        }
+      }
+    }
+
+    // Convert countryCount object to an array of objects
+    const userData = Object.entries(countryCount).map(([country, users]) => ({
+      country,
+      users,
+    }));
+
+    // Generate demographics data
+    let demographicsData = [
+      { name: '18-24', male: 0, female: 0 },
+      { name: '25-34', male: 0, female: 0 },
+      { name: '35-44', male: 0, female: 0 },
+      { name: '45-54', male: 0, female: 0 },
+      { name: '55-64', male: 0, female: 0 },
+      { name: '65+', male: 0, female: 0 },
+    ];
+
+    const currentYear = new Date().getFullYear();
+
+    for (let user of users) {
+      if (!user.dateOfBirth || !user.gender) continue;
+
+      const birthYear = new Date(user.dateOfBirth.$date || user.dateOfBirth).getFullYear();
+      const age = currentYear - birthYear;
+      const gender = user.gender.toLowerCase(); // Ensure gender is lowercase
+
+      // Determine the age group
+      let ageGroupIndex;
+      if (age >= 18 && age <= 24) ageGroupIndex = 0;
+      else if (age >= 25 && age <= 34) ageGroupIndex = 1;
+      else if (age >= 35 && age <= 44) ageGroupIndex = 2;
+      else if (age >= 45 && age <= 54) ageGroupIndex = 3;
+      else if (age >= 55 && age <= 64) ageGroupIndex = 4;
+      else if (age >= 65) ageGroupIndex = 5;
+
+      // Increment the appropriate gender count
+      if (ageGroupIndex !== undefined && (gender === 'male' || gender === 'female')) {
+        demographicsData[ageGroupIndex][gender]++;
+      }
+    }
+
+    // Respond with both user data and demographics data
+    res.status(200).json({ userData, demographicsData });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error fetching analytics data' });
+  }
+}
+
+async function getMonthlyAnalytics(req, res) {
+  try {
+    const { userId } = req.params; // User ID of the creator for analytics
+
+    // Fetch all videos uploaded by the creator
+    const videos = await Video.find({ creatorId: userId });
+
+    if (!videos || videos.length === 0) {
+      return res.status(404).json({ message: 'No videos found for the creator.' });
+    }
+
+    // Initialize monthly analytics data
+    let monthlyData = [
+      { name: 'Jan', likes: 0, followers: 0 },
+      { name: 'Feb', likes: 0, followers: 0 },
+      { name: 'Mar', likes: 0, followers: 0 },
+      { name: 'Apr', likes: 0, followers: 0 },
+      { name: 'May', likes: 0, followers: 0 },
+      { name: 'Jun', likes: 0, followers: 0 },
+      { name: 'Jul', likes: 0, followers: 0 },
+      { name: 'Aug', likes: 0, followers: 0 },
+      { name: 'Sep', likes: 0, followers: 0 },
+      { name: 'Oct', likes: 0, followers: 0 },
+      { name: 'Nov', likes: 0, followers: 0 },
+      { name: 'Dec', likes: 0, followers: 0 },
+    ];
+
+    // Loop through each video
+    for (let video of videos) {
+      const createdAt = new Date(video.createdAt.$date || video.createdAt); // Handle nested `$date`
+      const monthIndex = createdAt.getMonth(); // Get month index (0 for Jan, 11 for Dec)
+
+      if (monthIndex >= 0 && monthIndex < 12) {
+        // Increment likes and followers for the respective month
+        monthlyData[monthIndex].likes += video.totalLikes || 0;
+        monthlyData[monthIndex].followers += video.totalViews || 0; // Assuming followers come from views
+      }
+    }
+
+    // Respond with the monthly data
+    res.status(200).json({ monthlyData });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error fetching monthly analytics data' });
+  }
+}
 
 async function uploadVideo(req, res) {
   try {
@@ -93,54 +241,6 @@ async function uploadYoutubeVideoURL(req, res) {
       .json({ message: 'Something went wrong, please try again', error: error.message });
   }
 }
-
-// async function getGeneralVideoData(req, res) {
-//   try {
-//     const { userId } = req.params;
-
-//     const videos = await Video.find({ creatorId: userId });
-
-//     if (!videos || videos.length === 0) {
-//       return res.status(404).json({ message: 'No videos found' });
-//     }
-
-//     let totalLikes = 0;
-//     let totalComments = 0;
-//     let totalRatings = 0;
-//     let totalRatingPoints = 0;
-
-//     videos.forEach((video) => {
-//       totalLikes += video.likes.length;
-//       totalComments += video.comments.length;
-
-//       totalRatings += video.ratings.length;
-//       video.ratings.forEach((rating) => {
-//         totalRatingPoints += rating.rating;
-//       });
-
-//       let averageRating = 0;
-//       if (video.ratings.length > 0) {
-//         averageRating = totalRatingPoints / video.ratings.length;
-//       }
-//       video.averageRating = averageRating;
-//       video.save();
-//     });
-
-//     const totalVideo = await Video.countDocuments({ creatorId: userId });
-
-//     return res.status(200).json({
-//       data: {
-//         totalLikes,
-//         totalComments,
-//         totalRatings,
-//         averageRating: videos[0].averageRating,
-//         totalVideos: totalVideo,
-//       },
-//     });
-//   } catch (error) {
-//     return res.status(500).json({ message: 'Something went wrong', error: error.message });
-//   }
-// }
 
 // Get Author videos for CRUD by Original AUthor
 
@@ -264,18 +364,6 @@ async function deleteVideo(req, res) {
   }
 }
 
-// async function getCreatorProfile(req, res) {
-//   const { userId } = req.params;
-//   try {
-//     const user = await User.findById(userId).select('-password');
-//     if (!user) {
-//       return res.status(404).json({ message: 'User not found' });
-//     }
-//     return res.status(200).json({ user });
-//   } catch (error) {
-//     return res.status(500).json({ message: 'Internal server error' });
-//   }
-// }
 async function getCreatorProfile(req, res) {
   const { userId } = req.params;
 
@@ -337,6 +425,95 @@ async function videoDetailById(req, res) {
   }
 }
 
+async function getGeneralVideoData(req, res) {
+  try {
+    const { userId } = req.params;
+
+    // Fetch videos created by the user
+    const videos = await Video.find({ creatorId: userId });
+
+    if (!videos || videos.length === 0) {
+      return res.status(404).json({ message: 'No videos found' });
+    }
+
+    // Initialize counters for aggregation
+    let totalLikes = 0;
+    let totalComments = 0;
+    let totalRatings = 0;
+    let totalRatingPoints = 0;
+    let totalVideos = videos.length;
+    let totalShares = 0;
+    let totalViews = 0;
+
+    // Iterate through each video to calculate likes, comments, ratings, and average ratings
+    for (const video of videos) {
+      totalLikes += video.totalLikes;
+      totalComments += video.totalComments;
+      totalRatings += video.totalRatings;
+      totalRatingPoints += video.averageRating * video.totalRatings; // Multiply average by total ratings to get total rating points
+      totalShares += video.totalShares;
+      totalViews += video.totalViews;
+
+      // Calculate the video's average rating
+      let averageRating = 0;
+      if (video.totalRatings > 0) {
+        averageRating = totalRatingPoints / totalRatings;
+      }
+      // Update the video's average rating (optional, if you want to save this to the database)
+      video.averageRating = averageRating;
+      // await video.save();
+    }
+
+    // Calculate total number of videos by the user
+    const totalVideoCount = await Video.countDocuments({ creatorId: userId });
+
+    // Calculate the overall average rating
+    let overallAverageRating = 0;
+    if (totalRatings > 0) {
+      overallAverageRating = totalRatingPoints / totalRatings;
+    }
+
+    // Return aggregated data
+    return res.status(200).json({
+      data: {
+        totalLikes,
+        totalComments,
+        totalRatings,
+        overallAverageRating,
+        totalVideos: totalVideoCount,
+        totalShares,
+        totalViews,
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({ message: 'Something went wrong', error: error.message });
+  }
+}
+
+// async function getUserAnalytics(req, res) {
+//   try {
+//     const { userId } = req.params; // You may need this to fetch user-specific data if required
+
+//     // Fetch users grouped by nationality
+//     const userStats = await User.aggregate([
+//       { $group: { _id: '$nationality', count: { $sum: 1 } } },
+//       { $project: { country: '$_id', users: '$count', _id: 0 } },
+//     ]);
+
+//     // Prepare the response
+//     const response = userStats.map((item) => ({
+//       country: item.country,
+//       users: item.users,
+//     }));
+
+//     // Respond with the aggregated data
+//     res.status(200).json(response);
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ message: 'Error fetching analytics data' });
+//   }
+// }
+
 export {
   uploadVideo,
   uploadThumbnail,
@@ -346,4 +523,7 @@ export {
   deleteVideo,
   getCreatorProfile,
   videoDetailById,
+  getGeneralVideoData,
+  getUserAnalytics,
+  getMonthlyAnalytics,
 };

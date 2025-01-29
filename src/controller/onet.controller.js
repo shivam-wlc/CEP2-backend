@@ -86,44 +86,6 @@ async function getInterestProfilerData(req, res) {
   }
 }
 
-// async function resultAndMatchingCareers(req, res) {
-//   try {
-//     const { answers, userId } = req.body;
-
-//     const [careers, results, user, survey, clustersData, unifiedData] = await Promise.all([
-//       onetInterestProfiler.resultAndMatchingCareers('careers', answers),
-//       onetInterestProfiler.resultAndMatchingCareers('results', answers),
-//       User.findById(userId),
-//       Survey.findOne({ userId }),
-//       CareerCluster.find(),
-//       UnifiedRecord.findOne({ userId }),
-//     ]);
-
-//     // Check if InterestProfile exists and update or create a new one
-//     let interestProfile = await InterestProfile.findOne({ userId });
-
-//     if (interestProfile) {
-//       interestProfile.answers = answers;
-//       interestProfile.careers = careers;
-//       interestProfile.results = results;
-//     } else {
-//       interestProfile = new InterestProfile({ userId, answers, careers, results });
-//     }
-
-//     await interestProfile.save();
-
-//     unifiedData.interestProfile.assessmentId = interestProfile._id;
-//     unifiedData.interestProfile.isTaken = true;
-//     await unifiedData.save();
-
-//     res.status(200).json({ careers, results, paid: interestProfile.payment.isPaid });
-//   } catch (error) {
-//     res
-//       .status(500)
-//       .json({ message: 'Something went wrong, please try again', error: error.message });
-//   }
-// }
-
 async function resultAndMatchingCareers(req, res) {
   try {
     const { answers, userId } = req.body;
@@ -328,68 +290,6 @@ async function getCareerInfo(req, res) {
 
 //     res.status(200).json({ totalData });
 //   } catch (error) {
-//     return res
-//       .status(500)
-//       .json({ message: 'Something went wrong, please try again', error: error.message });
-//   }
-// }
-
-// async function generateResult(req, res) {
-//   try {
-//     const { userId } = req.params;
-
-//     const user = await User.findById(userId);
-
-//     const { firstName, lastName } = user;
-//     const fullname = `${firstName} ${lastName}`;
-
-//     const userReportdata = await ReportData.findOne({ userId });
-//     console.log('userReportdata', userReportdata);
-
-//     // Fetch the unified record
-//     const unifiedRecord = await UnifiedRecord.findOne({ userId });
-//     if (!unifiedRecord) {
-//       return res.status(404).json({ message: 'Interest profile not found' });
-//     }
-
-//     // Sort and get the latest assessment ID
-//     const sortedInterestProfiles = unifiedRecord.interestProfile.sort(
-//       (a, b) => new Date(b.timestamp) - new Date(a.timestamp),
-//     );
-//     const latestAssessmentId = sortedInterestProfiles[0]?.assessmentId?.toString();
-//     if (!latestAssessmentId) {
-//       return res.status(404).json({ message: 'No assessment data available' });
-//     }
-
-//     // Fetch interest profile data
-//     const interestProfileData = await InterestProfile.findOne({ _id: latestAssessmentId });
-//     if (!interestProfileData) {
-//       return res.status(404).json({ message: 'Interest profile data not found' });
-//     }
-
-//     // Validate careers and map over them
-//     // const careers = interestProfileData?.careers?.career || [];
-//     const careers = interestProfileData.careers.get('career') || [];
-
-//     let totalData = [];
-
-//     // Fetch career information concurrently
-//     const careerPromises = careers.map(async (career) => {
-//       const { code } = career;
-//       const topic = 'report';
-//       try {
-//         const response = await onetCareerReport.getCareerInfo(code, topic);
-//         totalData.push(response);
-//       } catch (error) {
-//         console.error(`Failed to fetch data for career code ${code}:`, error.message);
-//       }
-//     });
-
-//     await Promise.all(careerPromises);
-
-//     res.status(200).json({ totalData, fullname, userReportdata });
-//   } catch (error) {
-//     console.error('Error in generateResult:', error);
 //     return res
 //       .status(500)
 //       .json({ message: 'Something went wrong, please try again', error: error.message });

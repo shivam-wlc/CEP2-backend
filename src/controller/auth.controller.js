@@ -16,7 +16,6 @@ import { v4 as uuidv4 } from 'uuid';
 const signup = async (req, res) => {
   try {
     const { firstName, lastName, email, password, mobile, role, gender } = req.body;
-    console.log('req.body', req.body);
 
     if (!isValidEmail(email)) {
       return res.status(400).json({ message: 'Email is invalid' });

@@ -1,55 +1,5 @@
 import UnifiedRecord from '##/src/models/unifiedRecord.model.js';
-import User from '##/src/models/user.model.js';
 import DiscProfile from '##/src/models/disc.model.js';
-
-// async function saveDiscAnswers(req, res) {
-//   const { userId, answers } = req.body;
-
-//   try {
-//     if (!userId || !answers) {
-//       return res.status(400).json({ message: 'Missing required fields' });
-//     }
-
-//     // Concurrently update DiscProfile and UnifiedRecord
-//     // Calculate scores
-//     const scores = calculateScores(answers);
-
-//     // Update or create the DiscProfile
-//     const discProfile = await DiscProfile.findOneAndUpdate(
-//       { userId },
-//       { $set: { answers, scores } },
-//       { new: true, upsert: true }, // Upsert to create if not exists
-//     )
-//       .lean()
-//       .exec(); // Use lean for better performance
-
-//     // Update the UnifiedRecord with the discProfile ID
-//     const unifiedRecord = await UnifiedRecord.findOneAndUpdate(
-//       { userId },
-//       {
-//         $set: {
-//           'discProfile.isTaken': true,
-//           'discProfile.assessmentId': discProfile._id,
-//         },
-//       },
-//       { new: true },
-//     )
-//       .lean()
-//       .exec(); // Use lean for better performance
-
-//     if (!unifiedRecord) {
-//       return res.status(404).json({ message: 'Unified record not found' });
-//     }
-
-//     // await User.findByIdAndUpdate(userId, { $set: { 'discProfile.scores': scores } });
-
-//     return res
-//       .status(200)
-//       .json({ message: 'Disc profile and unified record updated successfully' });
-//   } catch (error) {
-//     return res.status(500).json({ message: 'Failed to save disc answers', error: error.message });
-//   }
-// }
 
 async function saveDiscAnswers(req, res) {
   const { userId, answers } = req.body;

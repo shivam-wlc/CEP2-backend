@@ -1,5 +1,5 @@
 import User from '##/src/models/user.model.js';
-import UserDetails from '##/src/models/userDetails.model.js';
+
 import { comparePassword, encryptPassword } from '##/src/config/lib/bcrypt.js';
 import { checkPassStrength, isValidEmail } from '##/utility/validate.js';
 import { uploadToS3 } from '##/src/config/lib/S3.js';
@@ -18,18 +18,6 @@ async function getUserProfile(req, res) {
     return res.status(500).json({ message: 'Internal server error' });
   }
 }
-
-// async function updateProfile(req, res) {
-//   try {
-//     const { userId } = req.params;
-//     const updateUser = await User.findByIdAndUpdate(userId, req.body, { new: true });
-//     return res.status(200).json({ message: 'User details updated successfully', user: updateUser });
-//   } catch (error) {
-//     return res
-//       .status(500)
-//       .json({ message: 'Something went wrong, please try again', error: error.message });
-//   }
-// }
 
 async function updateProfile(req, res) {
   try {

@@ -11,5 +11,4 @@ resumeRoutes.route('/updateComment/:commentId/:userId').post(resume.updateCommen
 resumeRoutes.route('/updatePurpose/:resumeId/:userId').post(resume.updatePurpose);
 resumeRoutes.route('/deleteResume/:resumeId/:userId').delete(resume.deleteResume);
 
-
 export default resumeRoutes;

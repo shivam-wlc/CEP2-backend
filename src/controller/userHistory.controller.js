@@ -157,11 +157,6 @@ async function studentDashboardAnalytics(req, res) {
     const sharedCount = userHistory.sharedVideos.length;
     const watchedCount = userHistory.watchedVideos.length;
 
-    console.log('userHistory watchedVideos', userHistory.watchedVideos);
-    console.log('likedCount', likedCount);
-    console.log('sharedCount', sharedCount);
-    console.log('watchedCount', watchedCount);
-
     // Create an array of flags based on the language of the watched videos
     const watchedFlags = userHistory.watchedVideos
       .map((video) => {
@@ -176,8 +171,6 @@ async function studentDashboardAnalytics(req, res) {
         }
         return uniqueFlags;
       }, []);
-
-    console.log('Unique watched flags:', watchedFlags);
 
     // Send back the analytics and flags
     return res.status(200).json({

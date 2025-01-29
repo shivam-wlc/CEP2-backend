@@ -13,8 +13,7 @@ const paymentSchema = new mongoose.Schema(
     },
     transactionID: {
       type: String,
-      // required: true,
-      // unique: true,
+
       default: '',
     },
     paymentStatus: {

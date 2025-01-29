@@ -38,8 +38,6 @@ export default {
   stripe: {
     Publishable_Key: process.env.PUBLISHABLE_KEY,
     Secret_Key: process.env.SECRET_KEY,
-    Webhook_Secret: process.env.WEBHOOK_KEY,
-    Redirect_Link: process.env.REDIRECT_LINK,
   },
 
   // AWS S3 bucket keys

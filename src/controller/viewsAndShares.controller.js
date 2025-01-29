@@ -20,7 +20,6 @@ async function increaseCount(req, res, field) {
 
     if (userId && field === 'totalViews') {
       const userHistory = await UserHistory.findOne({ userId });
-      console.log('userHistory', userHistory);
       userHistory.watchedVideos.push({ videoId });
       await userHistory.save();
     }

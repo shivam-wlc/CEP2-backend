@@ -5,8 +5,6 @@ import config from '##/src/config/config.js';
 async function sendAdminSupportEmail(req, res) {
   const { firstName, lastName, email, phoneNumber, query } = req.body;
 
-  console.log('Form Data:', firstName, lastName, email, phoneNumber, query);
-
   // Prepare HTML content for the email
   const emailContent = `
       <h1>New Contact Form Submission</h1>
@@ -35,8 +33,6 @@ async function sendAdminSupportEmail(req, res) {
 async function sendTechSupportEmail(req, res) {
   const { firstName, lastName, email, phoneNumber, query } = req.body;
 
-  console.log('Tech Support Form Data:', firstName, lastName, email, phoneNumber, query);
-
   // Prepare HTML content for the email
   const emailContent = `
       <h1>New Tech Support Contact Form Submission</h1>
@@ -64,8 +60,6 @@ async function sendTechSupportEmail(req, res) {
 
 async function sendStudentSupportEmail(req, res) {
   const { firstName, lastName, email, phoneNumber, query } = req.body;
-
-  console.log('Student Support Form Data:', firstName, lastName, email, phoneNumber, query);
 
   // Prepare HTML content for the email
   const emailContent = `

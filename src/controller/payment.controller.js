@@ -1,7 +1,5 @@
 import UnifiedRecord from '##/src/models/unifiedRecord.model.js';
-import InterestProfile from '##/src/models/interestProfile.model.js';
 import Payment from '##/src/models/payment.model.js';
-import bodyParser from 'body-parser';
 import config from '##/src/config/config.js';
 import Stripe from 'stripe';
 const stripe = new Stripe(config.stripe.Secret_Key);
@@ -10,7 +8,6 @@ import User from '##/src/models/user.model.js';
 const initiatePayment = async (req, res) => {
   try {
     const { userId, couponCode } = req.body;
-    console.log('userId', userId, 'couponCode', couponCode);
     const user = await User.findById(userId);
 
     if (!user) {
@@ -69,8 +66,6 @@ const initiatePayment = async (req, res) => {
     });
     await PaymentRecord.save();
 
-    console.log('Session created and consoled out:', session);
-
     res.send({ url: session.url });
   } catch (error) {
     console.error('Error creating checkout session:', error);
@@ -92,7 +87,7 @@ const verifyPayment = async (req, res) => {
     if (!user) return res.status(404).send({ error: 'User not found' });
     if (!paymentRecord) return res.status(404).send({ error: 'Payment not found' });
 
-    console.log('paymentRecord', paymentRecord);
+  
 
     const sessionId = paymentRecord.transactionID;
 
@@ -147,16 +142,6 @@ const checkPaymentStatus = async (req, res) => {
     // Initialize variables for payment status and remaining attempts
     let isPaid = unifiedRecord.combinedPayment.isPaid;
     let remainingAttempts = unifiedRecord.combinedPayment.remainingAttempts;
-
-    // // Check if payment status is 'paid'
-    // if (unifiedRecord.combinedPayment.isPaid) {
-    //   if (remainingAttempts > 0) {
-    //     isPaid = true;
-    //   } else {
-    //     isPaid = false;
-    //     remainingAttempts = 0; // If no remaining attempts, set to 0
-    //   }
-    // }
 
     // Respond with payment status and remaining attempts
     return res.send({ isPaid, remainingAttempts });

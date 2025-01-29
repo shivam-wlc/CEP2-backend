@@ -2,44 +2,6 @@ import User from '##/src/models/user.model.js';
 import InterestProfile from '##/src/models/interestProfile.model.js';
 import UnifiedRecord from '##/src/models/unifiedRecord.model.js';
 
-// async function getInterestProfiler(req, res) {
-//   const { userId } = req.params;
-
-//   try {
-//     // Fetch user and check if it exists
-//     const user = await User.findById(userId).lean();
-//     if (!user) {
-//       return res.status(404).json({ message: 'User not found' });
-//     }
-
-//     // Fetch unified record and check if it exists
-//     const unifiedRecord = await UnifiedRecord.findOne({ userId }).lean();
-//     if (!unifiedRecord) {
-//       return res.status(404).json({ message: 'Unified record not found' });
-//     }
-
-//     console.log('unifiedRecord', unifiedRecord);
-
-//     // Fetch interest profile and check if it exists
-//     const interestProfile = await InterestProfile.findOne({ userId, attemptNumber: 1 }).lean();
-//     if (!interestProfile) {
-//       return res.status(404).json({ message: 'Interest profile not found' });
-//     }
-
-//     // Check payment status and respond accordingly
-//     if (unifiedRecord.combinedPayment.isPaid) {
-//       return res.status(200).json(interestProfile);
-//     } else {
-//       const randomCareers = getRandomCareers(interestProfile.careers.career, 3);
-//       return res.status(200).json({ ...interestProfile, careers: { career: randomCareers } });
-//       // return res.status(200).json({ careers: randomCareers });
-//     }
-//   } catch (error) {
-//     console.error(error);
-//     return res.status(500).json({ message: 'Internal server error' });
-//   }
-// }
-
 async function getInterestProfiler(req, res) {
   const { userId } = req.params;
 

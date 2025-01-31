@@ -17,7 +17,7 @@ mongo_uri = os.getenv("MONGO")
 def connect_to_mongo():
     try:
         # Replace with your MongoDB connection URI and credentials
-        client = pymongo.MongoClient("mongodb+srv://shivam:wlcshivam@wlc-shivam.rwktud3.mongodb.net/test2careerexplorer?retryWrites=true&w=majority&appName=wlc-shivam")
+        client = pymongo.MongoClient(mongo_uri)
 
         # Test the connection
         client.admin.command('ping')
@@ -31,7 +31,7 @@ def connect_to_mongo():
 # Function to fetch DISC scores
 def fetch_disc_scores(client, user_id):
     try:
-        db = client['test2careerexplorer']
+        db = client['test3careerexplorer']
         disc_collection = db['discprofiles']
 
         disc_details = disc_collection.find_one({"userId": ObjectId(user_id)})
@@ -56,7 +56,7 @@ def fetch_raisec_results(client, user_id):
     if not client:
         return None
 
-    db = client['test2careerexplorer']
+    db = client['test3careerexplorer']
     interest_profiles_collection = db['interestprofiles']
 
     user_doc = interest_profiles_collection.find_one({"userId": ObjectId(user_id)})
@@ -77,8 +77,8 @@ def fetch_raisec_results(client, user_id):
     return raisec_results
 
 # Function to fetch user data from 'users', 'surveys', DISC, and RAISEC collections
-def fetch_user_info(client, user_id):
-    db = client['test2careerexplorer']
+def fetch_user_info(client, user_id,currentAttempt):
+    db = client['test3careerexplorer']
 
     users_collection = db['users']
     user_details = users_collection.find_one({"_id": ObjectId(user_id)})
@@ -87,7 +87,7 @@ def fetch_user_info(client, user_id):
     last_name = user_details.get('lastName', '') if user_details else ''
 
     surveys_collection = db['surveys']
-    survey_details = surveys_collection.find_one({"userId": ObjectId(user_id)})
+    survey_details = surveys_collection.find_one({"userId": ObjectId(user_id), "attemptNumber": currentAttempt})
 
    # disc_score = fetch_disc_scores(client, user_id)
 
@@ -122,11 +122,11 @@ def fetch_user_info(client, user_id):
         return None
 
 # Function to summarize student personality and interests
-def summarize_student(client, user_id):
-    user_info = fetch_user_info(client, user_id)
-    db = client['test2careerexplorer']
+def summarize_student(client, user_id,currentAttempt):
+    user_info = fetch_user_info(client, user_id, currentAttempt)
+    db = client['test3careerexplorer']
     interest_profiles = db['interestprofiles']
-    interest_profile = interest_profiles.find_one({"userId": ObjectId(user_id)})
+    interest_profile = interest_profiles.find_one({"userId": ObjectId(user_id),"attemptNumber": currentAttempt })
 
     if interest_profile and 'careers' in interest_profile:
         top_20_jobs = interest_profile['careers']['career'][:20]
@@ -191,13 +191,14 @@ def summarize_student(client, user_id):
 
 # Example usage
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
+    if len(sys.argv) != 3:
         print("Usage: python3 your_script.py <user_id>")
         sys.exit(1)
 
     user_id = sys.argv[1]
+    current_attempt = int(sys.argv[2]) 
     client = connect_to_mongo()
 
     if client:
-        summarize_student(client, user_id)
+        summarize_student(client, user_id,current_attempt)
         client.close()

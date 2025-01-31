@@ -7,7 +7,10 @@ import SurveyQuestion from '##/src/models/surveyQuestions.model.js';
 import surveyQuestionsData from '##/src/utility/json/surevyQuestions.js';
 import InterestProfile from '##/src/models/interestProfile.model.js';
 import * as onetInterestProfiler from '##/src/services/onet/interestProfiler.onet.service.js';
-// import { callPythonScript } from '##/src/services/ceml/node_rating.js';
+import { callPythonScript } from '##/src/services/ceml/node_rating.js';
+import { callPythonScriptForCourses } from '##/src/services/ceml/nodeCourse.js';
+import { callPythonScriptForUniversity } from '##/src/services/ceml/nodeUniversity.js';
+import { callPythonScriptForPersonality } from '##/src/services/ceml/nodepersonality.js';
 
 async function saveSurveyData(req, res) {
   const { userId } = req.params;
@@ -96,7 +99,6 @@ async function interestProfileOptimisation(userId, selectedPathways, currentAtte
       attemptNumber: currentAttempt,
     });
 
-    console.log('userInterestProfile', userInterestProfile);
     if (!userInterestProfile) {
       throw new Error('InterestProfile not found');
     }
@@ -150,9 +152,32 @@ async function interestProfileOptimisation(userId, selectedPathways, currentAtte
     await userInterestProfile.save();
 
     // Call Python script after profile optimization
-    // await callPythonScript(userId, currentAttempt);
+    console.log('Calling Python script');
+    await callingPythonML(userId, currentAttempt);
+    console.log('Python script called successfully');
   } catch (error) {
     console.error('Error in interestProfileOptimisation:', error);
+  }
+}
+async function callingPythonML(userId, currentAttempt) {
+  console.log('currentAttempt', currentAttempt);
+  try {
+    // Measure the start time
+    const startTime = Date.now();
+
+    // Call the Python scripts sequentially
+    await callPythonScript(userId, currentAttempt);
+    await callPythonScriptForCourses(userId, currentAttempt);
+    await callPythonScriptForUniversity(userId, currentAttempt);
+    await callPythonScriptForPersonality(userId, currentAttempt);
+
+    // Measure the end time
+    const endTime = Date.now();
+    const timeTakenInSeconds = (endTime - startTime) / 1000;
+
+    console.log(`Time taken for completing the Python scripts: ${timeTakenInSeconds} seconds`);
+  } catch (error) {
+    console.error('Error in calling Python ML scripts:', error);
   }
 }
 

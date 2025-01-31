@@ -27,7 +27,9 @@ function routes(app) {
   app.use('/api/auth', authRoutes);
   app.use('/api/profile', profileRoutes);
   app.use('/api/creator', creatorRoute);
-  app.use('/api/survey', isAuthenticated, surveyRoute);
+  // app.use('/api/survey', isAuthenticated, surveyRoute);
+  app.use('/api/survey', surveyRoute);
+
   // app.use('/api/onet', isAuthenticated, onetRoutes);
   app.use('/api/onet', onetRoutes);
 

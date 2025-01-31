@@ -241,7 +241,9 @@ if __name__ == "__main__":
     user_id = sys.argv[1]
     current_attempt = int(sys.argv[2]) 
     # Load DISC scores from CSV
-    disc_scores = load_disc_scores('disc_scores.csv')
+    # disc_scores = load_disc_scores('disc_scores.csv')
+    csv_filepath = os.path.join(os.path.dirname(__file__), 'disc_scores.csv')
+    disc_scores = load_disc_scores(csv_filepath)
     
     # Connect to MongoDB
     client = connect_to_mongo()

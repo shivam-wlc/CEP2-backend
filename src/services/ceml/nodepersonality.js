@@ -1,15 +1,17 @@
-// const { spawn } = require('child_process');
 import { spawn } from 'child_process';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-// Replace this with the path to your Python script
-// const pythonScriptPath = "../Python/personality.py";
-const pythonScriptPath = './personality.py';
-const userId = '670f5f0f992eec1dcca605bc'; // Replace with the actual user ID
+// Manually define __dirname in ES Module
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const pythonScriptPath = path.join(__dirname, 'personality.py');
 
 // Function to call the Python script
-function callPythonScript(userId) {
+export function callPythonScriptForPersonality(userId, currentAttempt) {
   return new Promise((resolve, reject) => {
-    const pythonProcess = spawn('python3', [pythonScriptPath, userId]);
+    const pythonProcess = spawn('python3', [pythonScriptPath, userId, currentAttempt]);
 
     let output = '';
     let errorOutput = '';
@@ -35,11 +37,11 @@ function callPythonScript(userId) {
   });
 }
 
-// Call the function
-callPythonScript(userId)
-  .then((output) => {
-    console.log('Python script output:', output);
-  })
-  .catch((error) => {
-    console.error('Error running Python script:', error.message);
-  });
+// // Call the function
+// callPythonScript(userId)
+//   .then((output) => {
+//     console.log('Python script output:', output);
+//   })
+//   .catch((error) => {
+//     console.error('Error running Python script:', error.message);
+//   });

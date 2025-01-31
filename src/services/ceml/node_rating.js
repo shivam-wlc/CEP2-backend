@@ -1,13 +1,14 @@
-// const { spawn } = require('child_process');
 import { spawn } from 'child_process';
-const pythonScriptPath =
-  '/Users/shivam/Desktop/Ce-Phase2Backup/ce-phase2-backend/src/services/ceml/rating_DISC.py';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-// Replace this with the path to your Python script
-// const pythonScriptPath = "../Python/rating_DISC.py";
-// const pythonScriptPath = '##/src/services/ceml/rating_DISC.py';
-// const pythonScriptPath = '/Users/shivam/Desktop/Ce-Phase2 Backup/ce-phase2-backend/src/services/ceml/rating_DISC.py';
-// const userId = '670f5f0f992eec1dcca605bc';
+// Manually define __dirname in ES Module
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+// const pythonScriptPath =
+//   '/Users/shivam/Desktop/Ce-Phase2Backup/ce-phase2-backend/src/services/ceml/rating_DISC.py';
+// Resolve the absolute path of the Python script
+const pythonScriptPath = path.join(__dirname, 'rating_DISC.py');
 
 // Function to call the Python script
 export function callPythonScript(userId, currentAttempt) {
@@ -37,12 +38,3 @@ export function callPythonScript(userId, currentAttempt) {
     });
   });
 }
-
-// // Call the function
-// callPythonScript(userId)
-//   .then((output) => {
-//     console.log('Python script output:', output);
-//   })
-//   .catch((error) => {
-//     console.error('Error running Python script:', error.message);
-//   });

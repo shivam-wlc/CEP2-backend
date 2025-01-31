@@ -11,13 +11,13 @@ load_dotenv()
 
 openai_api_key = os.getenv("OPENAI_API_KEY")
 mongo_uri = os.getenv("MONGO")
-print("OpenAI API Key:", openai_api_key)
+
 
 # MongoDB connection function
 def connect_to_mongo():
     try:
         # Replace with your MongoDB connection URI and credentials
-        client = pymongo.MongoClient("mongodb+srv://shivam:wlcshivam@wlc-shivam.rwktud3.mongodb.net/test2careerexplorer?retryWrites=true&w=majority&appName=wlc-shivam")
+        client = pymongo.MongoClient(mongo_uri)
 
         # Test the connection
         client.admin.command('ping')
@@ -29,7 +29,7 @@ def connect_to_mongo():
         return None
 
 # Function to fetch DISC scores
-def fetch_disc_scores(client, user_id):
+def fetch_disc_scores(client, user_id,currentAttempt):
     """
     Fetch DISC scores for a given user ID from the 'discprofiles' collection.
 
@@ -41,11 +41,11 @@ def fetch_disc_scores(client, user_id):
         A dictionary containing DISC scores or an empty dictionary if not found.
     """
     try:
-        db = client['test2careerexplorer']
+        db = client['test3careerexplorer']
         disc_collection = db['discprofiles']
 
         # Fetch the DISC score document for the given user ID
-        disc_details = disc_collection.find_one({"userId": ObjectId(user_id)})
+        disc_details = disc_collection.find_one({"userId": ObjectId(user_id), "attemptNumber": currentAttempt})
 
         if disc_details:
             scores = disc_details.get('scores', {})
@@ -64,15 +64,15 @@ def fetch_disc_scores(client, user_id):
         return {}
 
 # Function to fetch RAISEC results
-def fetch_raisec_results(client, user_id):
+def fetch_raisec_results(client, user_id,currentAttempt):
     if not client:
         return None
 
-    db = client['test2careerexplorer']
+    db = client['test3careerexplorer']
     interest_profiles_collection = db['interestprofiles']  # Collection for RAISEC data
 
     # Fetch user document
-    user_doc = interest_profiles_collection.find_one({"userId": ObjectId(user_id)})
+    user_doc = interest_profiles_collection.find_one({"userId": ObjectId(user_id), "attemptNumber": currentAttempt})
 
     if not user_doc:
         print(f"No document found for userId: {user_id}")
@@ -94,8 +94,8 @@ def fetch_raisec_results(client, user_id):
     return raisec_results
 
 # Function to fetch user data from 'users', 'surveys', DISC, and RAISEC collections
-def fetch_user_info(client, user_id):
-    db = client['test2careerexplorer']
+def fetch_user_info(client, user_id,currentAttempt):
+    db = client['test3careerexplorer']
 
     # Fetch first_name and last_name from 'users' collection
     users_collection = db['users']
@@ -107,11 +107,11 @@ def fetch_user_info(client, user_id):
 
     # Fetch additional information from 'surveys' collection
     surveys_collection = db['surveys']
-    survey_details = surveys_collection.find_one({"userId": ObjectId(user_id)})
+    survey_details = surveys_collection.find_one({"userId": ObjectId(user_id), "attemptNumber": currentAttempt})
 
     intrest_collection = db['interestprofiles']
     # Fetch the user's interest profile from the collection
-    intrest_details = intrest_collection.find_one({"userId": ObjectId(user_id)})
+    intrest_details = intrest_collection.find_one({"userId": ObjectId(user_id), "attemptNumber": currentAttempt})
 
     # Extract careers with 'fit' as 'Best'
     if intrest_details and 'careers' in intrest_details:
@@ -120,10 +120,10 @@ def fetch_user_info(client, user_id):
     print(perfect_fit_titles)
 
     # Fetch DISC scores
-    disc_score = fetch_disc_scores(client, user_id)
+    disc_score = fetch_disc_scores(client, user_id,currentAttempt)
 
     # Fetch RAISEC results
-    raisec_results = fetch_raisec_results(client,user_id)
+    raisec_results = fetch_raisec_results(client,user_id,currentAttempt)
 
     if survey_details:
         # Extracting relevant fields from survey information
@@ -157,30 +157,139 @@ def fetch_user_info(client, user_id):
         return None
     
 
-def saveIntoDB(client, user_id, summary, fieldName):
-    try:
-        # Convert user_id to ObjectId if needed
-        if not isinstance(user_id, ObjectId):
-            user_id = ObjectId(user_id)
+# def saveIntoDB(client, user_id, summary, fieldName):
+#     try:
+#         # Convert user_id to ObjectId if needed
+#         if not isinstance(user_id, ObjectId):
+#             user_id = ObjectId(user_id)
         
-        db = client['test2careerexplorer']
-        report_data_collection = db["reportData"]
+#         db = client['test3careerexplorer']
+#         report_data_collection = db["reportData"]
 
-        # Update or insert document
-        result = report_data_collection.update_one(
-            {"userId": user_id},
-            {"$set": {fieldName: summary}},
-            upsert=True
-        )
+#         # Update or insert document
+#         result = report_data_collection.update_one(
+#             {"userId": user_id},
+#             {"$set": {fieldName: summary}},
+#             upsert=True
+#         )
 
       
-    except Exception as e:
-        print(f"Error saving summary into DB: {e}")
+#     except Exception as e:
+#         print(f"Error saving summary into DB: {e}")
+# Function to save data into the report collection
+def saveIntoDB(client, user_id, summary, field_name, attempt_number):
+    try:
+        # Reference to the 'ReportData' collection
+        db = client['test3careerexplorer']
+        report_data_collection = db["reportdatas"]
 
-def summarize_student(client, user_id):
+        # Convert user_id to ObjectId if it's not already
+        user_id = ObjectId(user_id)
+
+        # Create the report entry structure with the field name and summary
+        new_report = {
+            "attemptNumber": attempt_number,
+            field_name: summary
+        }
+
+        # Check if the report already exists for this user (by userId)
+        existing_report = report_data_collection.find_one({
+            "userId": user_id
+        })
+
+        # If the report exists for the user, add a new attempt entry
+        if existing_report:
+            report_data_collection.update_one(
+                {"_id": existing_report["_id"]},
+                {"$push": {"report": new_report}}
+            )
+            print(f"New report entry created for attempt {attempt_number} and saved {field_name}")
+        else:
+            # If no existing report document, create a new one for the user
+            new_document = {
+                "userId": user_id,
+                "report": [new_report]
+            }
+            report_data_collection.insert_one(new_document)
+            print(f"New report created for attempt {attempt_number} and saved {field_name}")
+
+    except Exception as e:
+        print(f"Error saving to database: {e}")
+
+
+# def saveIntoDB(client, user_id, summary, field_name, attempt_number):
+#     try:
+#         # Reference to the 'ReportData' collection
+#         db = client['test3careerexplorer']
+#         report_data_collection = db["reportdatas"]
+
+#         # Convert user_id to ObjectId if it's not already
+#         user_id = ObjectId(user_id)
+
+#         # Find the existing report for the user by userId
+#         existing_report = report_data_collection.find_one({
+#             "userId": user_id
+#         })
+
+#         # If the user has an existing report document
+#         if existing_report:
+#             # Create a new report entry for the given attemptNumber
+#             new_report = {
+#                 "attemptNumber": attempt_number,
+#                 field_name: summary
+#             }
+
+#             # Add the new report to the 'report' array
+#             report_data_collection.update_one(
+#                 {"_id": existing_report["_id"]},
+#                 {"$push": {"report": new_report}}
+#             )
+#             print(f"New report created for attempt {attempt_number} and saved {field_name}")
+
+#         else:
+#             # If no report exists for the user, create a new report document
+#             new_report = {
+#                 "userId": user_id,
+#                 "report": [
+#                     {
+#                         "attemptNumber": attempt_number,
+#                         field_name: summary
+#                     }
+#                 ]
+#             }
+#             # Insert the new report document into the collection
+#             report_data_collection.insert_one(new_report)
+#             print(f"New report created for attempt {attempt_number} and saved {field_name}")
+
+#     except Exception as e:
+#         print(f"Error saving to database: {e}")
+
+#     try:
+#         # Reference to the 'ReportData' collection
+#         report_data_collection = db["ReportData"]
+
+#         # Create a new report document with a unique attempt number
+#         new_report = {
+#             "userId": ObjectId(user_id),  # Ensure user_id is in ObjectId format
+#             "report": [
+#                 {
+#                     "attemptNumber": currentAttempt,
+#                     field_name: summary,
+#                 }
+#             ]
+#         }
+
+#         # Insert the new report document into the collection
+#         report_data_collection.insert_one(new_report)
+
+#         print(f"New report created and summary saved successfully for attempt {attempt_number}")
+#     except Exception as e:
+#         print(f"Error saving to database: {e}")
+
+def summarize_student(client, user_id, currentAttempt):
 
         # Fetch user information
-        user_info = fetch_user_info(client, user_id)
+        user_info = fetch_user_info(client, user_id,currentAttempt)
 
         if user_info:
             # Extract DISC and RAISEC details
@@ -238,10 +347,10 @@ def summarize_student(client, user_id):
             # Display the summary
             fieldName="personality_insight"
             # Save the summary into the database
-            saveIntoDB(client, user_id, summary,fieldName)
+            saveIntoDB(client, user_id, summary,fieldName,currentAttempt)
 
             # Fetch user information
-        user_info = fetch_user_info(client, user_id)
+        user_info = fetch_user_info(client, user_id,currentAttempt)
 
         if user_info:
             # Extract DISC and RAISEC details
@@ -294,7 +403,7 @@ def summarize_student(client, user_id):
             # Display the summary
             fieldName="basic_character"
             # Save the summary into the database
-            saveIntoDB(client, user_id, summary,fieldName)
+            saveIntoDB(client, user_id, summary,fieldName,currentAttempt)
 
 
             client_ai = OpenAI()  # Ensure correct OpenAI client initialization
@@ -330,9 +439,9 @@ def summarize_student(client, user_id):
             summary = completion.choices[0].message.content.strip()
 
             # Display the summary
-            fieldName="Acceptance_of_Management_responsibility"
+            fieldName="acceptance_of_management_responsibility"
             # Save the summary into the database
-            saveIntoDB(client, user_id, summary,fieldName)
+            saveIntoDB(client, user_id, summary,fieldName,currentAttempt)
 
 
 
@@ -370,9 +479,9 @@ def summarize_student(client, user_id):
             summary = completion.choices[0].message.content.strip()
 
             # Display the summary
-            fieldName="Factors_that_may_demotivate"
+            fieldName="factors_that_demotivate"
             # Save the summary into the database
-            saveIntoDB(client, user_id, summary,fieldName)
+            saveIntoDB(client, user_id, summary,fieldName,currentAttempt)
 
 
             client_ai = OpenAI()  # Ensure correct OpenAI client initialization
@@ -409,9 +518,9 @@ def summarize_student(client, user_id):
             summary = completion.choices[0].message.content.strip()
 
             # Display the summary
-            fieldName="Factors_that_threaten_self_esteem"
+            fieldName="factors_that_threaten_self_esteem"
             # Save the summary into the database
-            saveIntoDB(client, user_id, summary,fieldName)
+            saveIntoDB(client, user_id, summary,fieldName,currentAttempt)
 
             client_ai = OpenAI()  # Ensure correct OpenAI client initialization
             prompt = (
@@ -448,9 +557,9 @@ def summarize_student(client, user_id):
             summary = completion.choices[0].message.content.strip()
 
             # Display the summary
-            fieldName="How_relates_to_people"
+            fieldName="how_relates_to_people"
             # Save the summary into the database
-            saveIntoDB(client, user_id, summary,fieldName)
+            saveIntoDB(client, user_id, summary,fieldName,currentAttempt)
 
 
 
@@ -490,7 +599,7 @@ def summarize_student(client, user_id):
             # Display the summary
             fieldName="capability_for_organization_and_planning"
             # Save the summary into the database
-            saveIntoDB(client, user_id, summary,fieldName)
+            saveIntoDB(client, user_id, summary,fieldName,currentAttempt)
 
 
 
@@ -534,7 +643,7 @@ def summarize_student(client, user_id):
             # Display the summary
             fieldName="decision_making"
             # Save the summary into the database
-            saveIntoDB(client, user_id, summary,fieldName)
+            saveIntoDB(client, user_id, summary,fieldName,currentAttempt)
 
             client_ai = OpenAI()  # Ensure correct OpenAI client initialization
             prompt = (
@@ -572,7 +681,7 @@ def summarize_student(client, user_id):
             # Display the summary
             fieldName="learning_style"
             # Save the summary into the database
-            saveIntoDB(client, user_id, summary,fieldName)
+            saveIntoDB(client, user_id, summary,fieldName,currentAttempt)
 
 
 
@@ -612,7 +721,7 @@ def summarize_student(client, user_id):
             # Display the summary
             fieldName="management_technique"
             # Save the summary into the database
-            saveIntoDB(client, user_id, summary,fieldName)
+            saveIntoDB(client, user_id, summary,fieldName,currentAttempt)
 
 
 
@@ -653,7 +762,7 @@ def summarize_student(client, user_id):
             # Display the summary
             fieldName="motivational_factors"
             # Save the summary into the database
-            saveIntoDB(client, user_id, summary,fieldName)
+            saveIntoDB(client, user_id, summary,fieldName,currentAttempt)
 
 
 
@@ -694,9 +803,9 @@ def summarize_student(client, user_id):
             summary = completion.choices[0].message.content.strip()
 
             # Display the summary
-            fieldName="potential_as_a_Team_Leader"
+            fieldName="potential_as_a_team_leader"
             # Save the summary into the database
-            saveIntoDB(client, user_id, summary,fieldName)
+            saveIntoDB(client, user_id, summary,fieldName,currentAttempt)
 
 
 
@@ -738,9 +847,9 @@ def summarize_student(client, user_id):
             summary = completion.choices[0].message.content.strip()
 
             # Display the summary
-            fieldName="potential_as_a_Team_Member"
+            fieldName="potential_as_a_team_member"
             # Save the summary into the database
-            saveIntoDB(client, user_id, summary,fieldName)
+            saveIntoDB(client, user_id, summary,fieldName,currentAttempt)
 
 
             client_ai = OpenAI()  # Ensure correct OpenAI client initialization
@@ -777,7 +886,7 @@ def summarize_student(client, user_id):
             # Display the summary
             fieldName="potential_strengths"
             # Save the summary into the database
-            saveIntoDB(client, user_id, summary,fieldName)
+            saveIntoDB(client, user_id, summary,fieldName,currentAttempt)
 
 
 
@@ -817,7 +926,7 @@ def summarize_student(client, user_id):
             # Display the summary
             fieldName="potential_weaknesses"
             # Save the summary into the database
-            saveIntoDB(client, user_id, summary,fieldName)
+            saveIntoDB(client, user_id, summary,fieldName,currentAttempt)
 
 
 
@@ -855,7 +964,7 @@ def summarize_student(client, user_id):
             # Display the summary
             fieldName="questioning_method"
             # Save the summary into the database
-            saveIntoDB(client, user_id, summary,fieldName)
+            saveIntoDB(client, user_id, summary,fieldName,currentAttempt)
 
 
             client_ai = OpenAI()  # Ensure correct OpenAI client initialization
@@ -897,7 +1006,7 @@ def summarize_student(client, user_id):
             # Display the summary
             fieldName="response_to_a_sales_environment"
             # Save the summary into the database
-            saveIntoDB(client, user_id, summary,fieldName)
+            saveIntoDB(client, user_id, summary,fieldName,currentAttempt)
 
 
             client_ai = OpenAI()  # Ensure correct OpenAI client initialization
@@ -938,7 +1047,7 @@ def summarize_student(client, user_id):
             # Display the summary
             fieldName="response_to_a_technical_environment"
             # Save the summary into the database
-            saveIntoDB(client, user_id, summary,fieldName)
+            saveIntoDB(client, user_id, summary,fieldName,currentAttempt)
 
 
             client_ai = OpenAI()  # Ensure correct OpenAI client initialization
@@ -981,7 +1090,7 @@ def summarize_student(client, user_id):
             # Display the summary
             fieldName="response_to_authority"
             # Save the summary into the database
-            saveIntoDB(client, user_id, summary,fieldName)
+            saveIntoDB(client, user_id, summary,fieldName,currentAttempt)
 
 
             client_ai = OpenAI()  # Ensure correct OpenAI client initialization
@@ -1024,7 +1133,7 @@ def summarize_student(client, user_id):
             # Display the summary
             fieldName="time_scale"
             # Save the summary into the database
-            saveIntoDB(client, user_id, summary,fieldName)
+            saveIntoDB(client, user_id, summary,fieldName,currentAttempt)
 
 
 
@@ -1037,13 +1146,14 @@ def summarize_student(client, user_id):
 
 # Example usage
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
+    if len(sys.argv) != 3:
         print("Usage: python3 your_script.py <user_id>")
         sys.exit(1)
 
     user_id = sys.argv[1]
+    current_attempt = int(sys.argv[2]) 
     client = connect_to_mongo()
 
     if client:
-        summarize_student(client, user_id)
+        summarize_student(client, user_id,current_attempt)
         client.close()

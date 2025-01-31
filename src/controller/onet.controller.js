@@ -301,9 +301,8 @@ async function generateResult(req, res) {
     const { userId } = req.params;
 
     // Fetch user, report data, and unified record concurrently
-    const [user, userReportdata, unifiedRecord] = await Promise.all([
+    const [user, unifiedRecord] = await Promise.all([
       User.findById(userId, 'firstName lastName'), // Fetch only required fields
-      ReportData.findOne({ userId }),
       UnifiedRecord.findOne({ userId }),
     ]);
 
@@ -329,6 +328,8 @@ async function generateResult(req, res) {
 
     // Fetch interest profile data
     const interestProfileData = await InterestProfile.findById(latestAssessmentId);
+
+    const attemptNumber = interestProfileData?.attemptNumber;
 
     if (!interestProfileData) {
       return res.status(404).json({ message: 'Interest profile data not found' });
@@ -357,7 +358,114 @@ async function generateResult(req, res) {
     // Filter out any failed results (null values)
     const filteredData = totalData.filter((data) => data !== null);
 
-    res.status(200).json({ totalData: filteredData, fullname, userReportdata });
+    const userReportdata = await ReportData.findOne({
+      userId,
+      'report.attemptNumber': attemptNumber,
+    });
+
+    const reportObject = {
+      acceptance_of_management_responsibility: '',
+      basic_character: '',
+      capability_for_organization_and_planning: '',
+      decision_making: '',
+      factors_that_demotivate: '',
+      factors_that_threaten_self_esteem: '',
+      how_relates_to_people: '',
+      learning_style: '',
+      motivational_factors: '',
+      personality_insight: '',
+      potential_as_a_team_leader: '',
+      potential_as_a_team_member: '',
+      potential_strengths: '',
+      potential_weaknesses: '',
+      questioning_method: '',
+      response_to_authority: '',
+      response_to_a_sales_environment: '',
+      response_to_a_technical_environment: '',
+      time_scale: '',
+      management_technique: '',
+    };
+
+    for (let i = 0; i < userReportdata?.report.length; i++) {
+      if (userReportdata.report[i].attemptNumber === attemptNumber) {
+        if (userReportdata.report[i].acceptance_of_management_responsibility !== '') {
+          reportObject.acceptance_of_management_responsibility =
+            userReportdata.report[i].acceptance_of_management_responsibility;
+        }
+        if (userReportdata.report[i].basic_character !== '') {
+          reportObject.basic_character = userReportdata.report[i].basic_character;
+        }
+        if (userReportdata.report[i].capability_for_organization_and_planning !== '') {
+          reportObject.capability_for_organization_and_planning =
+            userReportdata.report[i].capability_for_organization_and_planning;
+        }
+        if (userReportdata.report[i].decision_making !== '') {
+          reportObject.decision_making = userReportdata.report[i].decision_making;
+        }
+        if (userReportdata.report[i].factors_that_demotivate !== '') {
+          reportObject.factors_that_demotivate = userReportdata.report[i].factors_that_demotivate;
+        }
+        if (userReportdata.report[i].factors_that_threaten_self_esteem !== '') {
+          reportObject.factors_that_threaten_self_esteem =
+            userReportdata.report[i].factors_that_threaten_self_esteem;
+        }
+        if (userReportdata.report[i].how_relates_to_people !== '') {
+          reportObject.how_relates_to_people = userReportdata.report[i].how_relates_to_people;
+        }
+        if (userReportdata.report[i].learning_style !== '') {
+          reportObject.learning_style = userReportdata.report[i].learning_style;
+        }
+        if (userReportdata.report[i].motivational_factors !== '') {
+          reportObject.motivational_factors = userReportdata.report[i].motivational_factors;
+        }
+        if (userReportdata.report[i].personality_insight !== '') {
+          reportObject.personality_insight = userReportdata.report[i].personality_insight;
+        }
+        if (userReportdata.report[i].potential_as_a_team_leader !== '') {
+          reportObject.potential_as_a_team_leader =
+            userReportdata.report[i].potential_as_a_team_leader;
+        }
+        if (userReportdata.report[i].potential_as_a_team_member !== '') {
+          reportObject.potential_as_a_team_member =
+            userReportdata.report[i].potential_as_a_team_member;
+        }
+        if (userReportdata.report[i].potential_strengths !== '') {
+          reportObject.potential_strengths = userReportdata.report[i].potential_strengths;
+        }
+        if (userReportdata.report[i].potential_weaknesses !== '') {
+          reportObject.potential_weaknesses = userReportdata.report[i].potential_weaknesses;
+        }
+        if (userReportdata.report[i].questioning_method !== '') {
+          reportObject.questioning_method = userReportdata.report[i].questioning_method;
+        }
+        if (userReportdata.report[i].response_to_authority !== '') {
+          reportObject.response_to_authority = userReportdata.report[i].response_to_authority;
+        }
+        if (userReportdata.report[i].response_to_a_sales_environment !== '') {
+          reportObject.response_to_a_sales_environment =
+            userReportdata.report[i].response_to_a_sales_environment;
+        }
+        if (userReportdata.report[i].response_to_a_technical_environment !== '') {
+          reportObject.response_to_a_technical_environment =
+            userReportdata.report[i].response_to_a_technical_environment;
+        }
+        if (userReportdata.report[i].time_scale !== '') {
+          reportObject.time_scale = userReportdata.report[i].time_scale;
+        }
+        if (userReportdata.report[i].management_technique !== '') {
+          reportObject.management_technique = userReportdata.report[i].management_technique;
+        }
+      }
+    }
+
+    res
+      .status(200)
+      .json({
+        totalData: filteredData,
+        fullname,
+        userReportdata: reportObject,
+        interestProfileData,
+      });
   } catch (error) {
     console.error('Error in generateResult:', error);
     res
